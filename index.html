@@ -3,59 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Kontrol Proyektor Kantor</title>
+  <title>Sistem Kontrol Proyektor Kantor - ProjecTrack</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    /* Transisi halus saat sidebar menyiut */
-    .transition-sidebar { transition: width 0.3s ease-in-out; }
+    /* Transisi halus saat sidebar menyiut atau melebar */
+    .transition-sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
   </style>
+  <script>
+    // Konfigurasi Grid 24 Kolom untuk representasi rentang 30 menitan (08:00 - 20:00)
+    tailwind.config = {
+      theme: {
+        extend: {
+          gridTemplateColumns: {
+            '24': 'repeat(24, minmax(0, 1fr))',
+          }
+        }
+      }
+    }
+  </script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased h-screen flex flex-col overflow-hidden">
 
-  <header class="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4 z-10 flex-shrink-0">
+  <header class="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4 z-10 flex-shrink-0 shadow-sm">
     <div class="flex items-center space-x-3">
-      <button id="btnToggleSidebar" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 focus:outline-none">
+      <button id="btnToggleSidebar" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 focus:outline-none transition">
         <span class="material-icons">menu</span>
       </button>
       <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
         <span class="material-icons text-blue-600">videocam</span> ProjecTrack
       </span>
     </div>
-    <div class="flex items-center space-x-2 text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1.5 rounded-full">
+    <div class="flex items-center space-x-2 text-sm text-gray-500 font-medium bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
       <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-      <span>Connected to Sheets DB</span>
+      <span>Sheets Server Database Connected</span>
     </div>
   </header>
 
   <div class="flex flex-1 overflow-hidden">
     
-    <aside id="sidebar" class="transition-sidebar w-64 bg-white border-r border-gray-200 flex flex-col justify-between flex-shrink-0">
+    <aside id="sidebar" class="transition-sidebar w-64 bg-white border-r border-gray-200 flex flex-col justify-between flex-shrink-0 shadow-sm z-10">
       <div class="p-4 space-y-2">
         
-        <button onclick="switchPage('dashboard')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-700 bg-blue-50 text-blue-600 font-medium rounded-xl transition">
+        <button onclick="switchPage('dashboard')" id="btn-nav-dashboard" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-blue-600 bg-blue-50 font-semibold rounded-xl transition">
           <span class="material-icons">dashboard</span>
-          <span class="sidebar-text opacity-100 transition-opacity">Dashboard</span>
+          <span class="sidebar-text opacity-100 whitespace-nowrap">Dashboard Visual</span>
         </button>
 
-        <button onclick="switchPage('booking')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+        <button onclick="switchPage('booking')" id="btn-nav-booking" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
           <span class="material-icons">add_box</span>
-          <span class="sidebar-text opacity-100 transition-opacity">Form Booking</span>
+          <span class="sidebar-text opacity-100 whitespace-nowrap">Form Booking</span>
         </button>
 
-        <button onclick="switchPage('kontrol')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+        <button onclick="switchPage('kontrol')" id="btn-nav-kontrol" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
           <span class="material-icons">swap_horizontal_circle</span>
-          <span class="sidebar-text opacity-100 transition-opacity">Kontrol Keluar/Masuk</span>
+          <span class="sidebar-text opacity-100 whitespace-nowrap">Kontrol Keluar/Masuk</span>
         </button>
 
-        <button onclick="switchPage('setting')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+        <button onclick="switchPage('setting')" id="btn-nav-setting" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
           <span class="material-icons">settings</span>
-          <span class="sidebar-text opacity-100 transition-opacity">Pengaturan</span>
+          <span class="sidebar-text opacity-100 whitespace-nowrap">Pengaturan</span>
         </button>
 
       </div>
 
-      <div class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center sidebar-text">
+      <div id="sidebar-footer" class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center whitespace-nowrap">
         v1.0.0 &copy; 2026 Internal IT Tool
       </div>
     </aside>
@@ -63,57 +75,223 @@
     <main id="main-content" class="flex-1 p-6 overflow-y-auto bg-gray-50">
       
       <div id="page-dashboard" class="page-section space-y-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Dashboard Visual Proyektor</h1>
-            <p class="text-sm text-gray-500">Pantau ketersediaan slot proyektor hari ini secara real-time.</p>
+            <p class="text-sm text-gray-500">Status ketersediaan unit hari ini secara real-time.</p>
           </div>
-          <div class="flex items-center space-x-2 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm">
-            <button class="p-2 hover:bg-gray-100 rounded-lg text-gray-600"><span class="material-icons text-sm">chevron_left</span></button>
-            <span class="font-semibold text-sm px-2 text-gray-700">Jumat, 05 Jun 2026</span>
-            <button class="p-2 hover:bg-gray-100 rounded-lg text-gray-600"><span class="material-icons text-sm">chevron_right</span></button>
+          
+          <div class="flex items-center space-x-2 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm self-start sm:self-auto">
+            <button onclick="ubahHari(-1)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition">
+              <span class="material-icons text-sm">chevron_left</span>
+            </button>
+            <span id="label-tanggal" class="font-semibold text-sm px-3 text-gray-700 min-w-[140px] text-center">Loading...</span>
+            <button onclick="ubahHari(1)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition">
+              <span class="material-icons text-sm">chevron_right</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4 text-xs font-medium bg-white px-4 py-3 rounded-xl border border-gray-200 inline-flex shadow-sm">
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-3 rounded-md bg-emerald-500"></span>
+            <span class="text-gray-600">Tersedia (Klik slot untuk booking)</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-3 rounded-md bg-rose-500"></span>
+            <span class="text-gray-600">Sudah Di-booking</span>
           </div>
         </div>
         
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
-          <p class="text-gray-400 text-sm">Visualisasi Bar Linier Proyektor akan tampil di sini...</p>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6 overflow-x-auto">
+          <div class="grid grid-cols-12 text-center text-xs font-bold text-gray-400 border-b border-gray-100 pb-2 min-w-[850px]">
+            <div>08:00</div><div>09:00</div><div>10:00</div><div>11:00</div><div>12:00</div><div>13:00</div>
+            <div>14:00</div><div>15:00</div><div>16:00</div><div>17:00</div><div>18:00</div><div>19:00</div>
+          </div>
+          
+          <div id="container-bar-proyektor" class="space-y-6 min-w-[850px]">
+            <div class="text-center py-8 text-gray-400 flex flex-col items-center justify-center gap-2">
+              <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              Menghubungkan data database cloud...
+            </div>
+          </div>
         </div>
       </div>
 
       <div id="page-booking" class="page-section hidden space-y-6">
-        <h1 class="text-2xl font-bold text-gray-900">Form Booking Proyektor</h1>
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <p class="text-gray-400 text-sm">Form peminjaman akan berada di sini...</p>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Form Booking Proyektor</h1>
+          <p class="text-sm text-gray-500">Isi formulir untuk reservasi slot operasional peminjaman perangkat.</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-2xl">
+          <form id="form-booking-proyektor" onsubmit="handleSimpanBooking(event)" class="space-y-5">
+            
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Proyektor</label>
+              <select id="form-id-proyektor" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm bg-gray-50"></select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Peminjam</label>
+                <input type="text" id="form-nama" required placeholder="Contoh: Ahmad Fauzi" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Departemen / Divisi</label>
+                <input type="text" id="form-dept" required placeholder="Contoh: Quality Control" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">No. WhatsApp Aktif</label>
+              <p class="text-[11px] text-gray-400 mb-2">*Sistem akan mengirim chat pengingat otomatis 10 menit sebelum waktu habis.</p>
+              <div class="relative flex items-center">
+                <span class="absolute left-4 text-sm font-semibold text-gray-400 border-r border-gray-200 pr-3">+62</span>
+                <input type="tel" id="form-nohp" required placeholder="81234567890" class="w-full pl-16 pr-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal</label>
+                <input type="date" id="form-tanggal" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Jam Mulai</label>
+                <input type="time" id="form-jam-mulai" min="08:00" max="19:00" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Jam Selesai</label>
+                <input type="time" id="form-jam-selesai" min="09:00" max="20:00" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm">
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button type="submit" id="btn-submit-booking" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl transition shadow-md shadow-blue-500/10 flex items-center justify-center gap-2">
+                <span class="material-icons text-sm">check_circle</span> Konfirmasi & Simpan Booking
+              </button>
+            </div>
+
+          </form>
         </div>
       </div>
 
       <div id="page-kontrol" class="page-section hidden space-y-6">
-        <h1 class="text-2xl font-bold text-gray-900">Kontrol Keluar / Masuk Aktual</h1>
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <p class="text-gray-400 text-sm">Log status aktual serah terima proyektor...</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Kontrol Keluar / Masuk Aktual</h1>
+            <p class="text-sm text-gray-500">Pencatatan serah terima fisik unit proyektor kantor secara presisi.</p>
+          </div>
+          
+          <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2 flex items-center gap-2 text-indigo-700 text-sm font-semibold shadow-sm">
+            <span class="material-icons text-base animate-spin">schedule</span>
+            <span>Waktu Sistem: <span id="live-clock">00:00</span> WIB</span>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th class="px-6 py-4">Peminjam</th>
+                  <th class="px-6 py-4">Jadwal Penggunaan</th>
+                  <th class="px-6 py-4">Jam Ambil (Fisik)</th>
+                  <th class="px-6 py-4">Jam Kembali (Fisik)</th>
+                  <th class="px-6 py-4">Status Logistik</th>
+                  <th class="px-6 py-4 text-right">Verifikasi Petugas</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-kontrol" class="divide-y divide-gray-100 text-sm text-gray-600">
+                <tr>
+                  <td colspan="6" class="text-center py-8 text-gray-400">Menyinkronkan log fisik...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <div id="page-setting" class="page-section hidden space-y-6">
-        <h1 class="text-2xl font-bold text-gray-900">Pengaturan Sistem</h1>
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <p class="text-gray-400 text-sm">Manajemen penambahan/pengurangan master proyektor...</p>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Pengaturan Perangkat</h1>
+          <p class="text-sm text-gray-500">Tambah atau sesuaikan kapasitas inventaris proyektor kantor.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-fit">
+            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-1.5 text-blue-600">
+              <span class="material-icons text-base">add_box</span> Tambah Unit Proyektor
+            </h3>
+            <form id="form-tambah-proyektor" onsubmit="handleTambahProyektor(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Perangkat</label>
+                <input type="text" id="set-nama" required placeholder="Contoh: Proyektor Epson EB-X400" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Lokasi / Keterangan</label>
+                <textarea id="set-deskripsi" rows="2" placeholder="Contoh: Ruang Meeting Lantai 2 Gedung Utama" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm"></textarea>
+              </div>
+              <button type="submit" id="btn-submit-setting" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-1.5 shadow-sm">
+                <span class="material-icons text-sm">save</span> Daftarkan Perangkat
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm lg:col-span-2">
+            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-1.5 text-indigo-600">
+              <span class="material-icons text-base">list</span> Daftar Aktif Inventaris Kantor
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr class="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase">
+                    <th class="px-4 py-3">ID Unit</th>
+                    <th class="px-4 py-3">Nama Alat</th>
+                    <th class="px-4 py-3">Lokasi / Posisi</th>
+                    <th class="px-4 py-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="table-body-setting" class="divide-y divide-gray-100 text-gray-600">
+                  </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
     </main>
-
   </div>
 
   <script>
-    // URL WEB APP APPS SCRIPT ANDA
+    // =========================================================================
+    // API LINK CONFIGURATION
+    // =========================================================================
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbziBkZjCHrKhjpNtFr8BfgQ6HhLK1sl4ILchdSJSCcIwviMX8ATYzOUxxilZ0UgNF6tJg/exec";
 
-    // 1. Logika Menyutkan Sidebar (Collapsible Sidebar)
+    // GLOBAL APP STATE
+    let tanggalAktif = new Date();
+    let masterProyektor = [];
+    let isCollapsed = false;
+
+    // INITIALIZATION RUNNER
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Aktifkan live clock untuk halaman kontrol fisik
+      setInterval(updateLiveClock, 1000);
+      updateLiveClock();
+      
+      // Sinkronisasi data dasar
+      updateLabelTanggal();
+      await muatMasterProyektor();
+      muatDataDashboard();
+    });
+
+    // 1. COLLAPSIBLE SIDEBAR MECHANISM
     const btnToggle = document.getElementById('btnToggleSidebar');
     const sidebar = document.getElementById('sidebar');
     const sidebarTexts = document.querySelectorAll('.sidebar-text');
-    let isCollapsed = false;
+    const sidebarFooter = document.getElementById('sidebar-footer');
 
     btnToggle.addEventListener('click', () => {
       isCollapsed = !isCollapsed;
@@ -121,31 +299,419 @@
         sidebar.classList.remove('w-64');
         sidebar.classList.add('w-20');
         sidebarTexts.forEach(text => text.classList.add('hidden'));
+        sidebarFooter.classList.add('hidden');
       } else {
         sidebar.classList.remove('w-20');
         sidebar.classList.add('w-64');
         sidebarTexts.forEach(text => text.classList.remove('hidden'));
+        sidebarFooter.classList.remove('hidden');
       }
     });
 
-    // 2. Logika Perpindahan Halaman (SPA - Single Page Application)
+    // 2. SPA NAVIGATION HANDLING
     function switchPage(pageId) {
-      // Sembunyikan semua section
-      document.querySelectorAll('.page-section').forEach(section => {
-        section.classList.add('hidden');
-      });
-      // Tampilkan section terpilih
+      document.querySelectorAll('.page-section').forEach(section => section.classList.add('hidden'));
       document.getElementById(`page-${pageId}`).classList.remove('hidden');
 
-      // Update styling tombol di sidebar agar aktif
       document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.classList.remove('bg-blue-50', 'text-blue-600');
-        btn.classList.add('text-gray-600', 'hover:bg-gray-50');
+        btn.classList.remove('bg-blue-50', 'text-blue-600', 'font-semibold');
+        btn.classList.add('text-gray-600', 'hover:bg-gray-50', 'font-medium');
       });
       
-      // Beri style aktif pada tombol yang diklik
-      event.currentTarget.classList.add('bg-blue-50', 'text-blue-600');
-      event.currentTarget.classList.remove('text-gray-600', 'hover:bg-gray-50');
+      const btnAktif = document.getElementById(`btn-nav-${pageId}`);
+      if (btnAktif) {
+        btnAktif.classList.add('bg-blue-50', 'text-blue-600', 'font-semibold');
+        btnAktif.classList.remove('text-gray-600', 'hover:bg-gray-50', 'font-medium');
+      }
+    }
+
+    // 3. LIVE CLOCK COMPONENT
+    function updateLiveClock() {
+      const sekarang = new Date();
+      const jam = String(sekarang.getHours()).padStart(2, '0');
+      const menit = String(sekarang.getMinutes()).padStart(2, '0');
+      const clockElem = document.getElementById('live-clock');
+      if (clockElem) clockElem.innerText = `${jam}:${menit}`;
+    }
+
+    // 4. DATE AND CALENDAR PARSER HELPERS
+    function dapatkanFormatTanggal(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function updateLabelTanggal() {
+      const opsi = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+      document.getElementById('label-tanggal').innerText = tanggalAktif.toLocaleDateString('id-ID', opsi);
+    }
+
+    function ubahHari(arah) {
+      tanggalAktif.setDate(tanggalAktif.getDate() + arah);
+      updateLabelTanggal();
+      muatDataDashboard();
+    }
+
+    // 5. DATABASE BACKEND INTEGRATION - GET READ DATA
+    async function muatMasterProyektor() {
+      try {
+        const response = await fetch(`${BACKEND_URL}?action=getMasterProyektor`);
+        masterProyektor = await response.json();
+        
+        renderTableSetting();
+        populateDropdownProyektor();
+      } catch (error) {
+        console.error("Gagal interkaoneksi master data proyektor:", error);
+      }
+    }
+
+    async function muatDataDashboard() {
+      const container = document.getElementById('container-bar-proyektor');
+      const tglString = dapatkanFormatTanggal(tanggalAktif);
+      
+      try {
+        const response = await fetch(`${BACKEND_URL}?action=getDashboard&tanggal=${tglString}`);
+        const result = await response.json();
+        
+        if (result.status === "success") {
+          renderDashboardBars(result.data);
+          renderHalamanKontrol(result.data);
+        } else {
+          container.innerHTML = `<p class="text-rose-500 text-center py-4 font-semibold">Error: ${result.message}</p>`;
+        }
+      } catch (error) {
+        console.error("Gagal interkoneksi data log operasional:", error);
+      }
+    }
+
+    // 6. DYNAMIC UI RENDERING ENGINE - VISUAL BARS GRAPH
+    function renderDashboardBars(dataBooking) {
+      const container = document.getElementById('container-bar-proyektor');
+      container.innerHTML = "";
+      
+      const proyektorAktif = masterProyektor.filter(p => p.Status_Aktif === "Y" || p.Status_Aktif === true);
+
+      if (proyektorAktif.length === 0) {
+        container.innerHTML = `<p class="text-center py-6 text-gray-400">Tidak ada proyektor aktif yang terdaftar.</p>`;
+        return;
+      }
+
+      proyektorAktif.forEach(proyektor => {
+        const bookingUnit = dataBooking.filter(b => b.ID_Proyektor == proyektor.ID_Proyektor);
+
+        const rowDiv = document.createElement('div');
+        rowDiv.className = "space-y-2 bg-gray-50/70 p-4 rounded-2xl border border-gray-100 shadow-sm";
+        rowDiv.innerHTML = `
+          <div class="flex items-center justify-between text-sm">
+            <span class="font-bold text-gray-700 flex items-center gap-1.5">
+              <span class="material-icons text-base text-gray-400">devices</span> ${proyektor.Nama_Proyektor}
+            </span>
+          </div>
+        `;
+
+        const barWrapper = document.createElement('div');
+        barWrapper.className = "grid grid-cols-24 h-12 w-full rounded-xl overflow-hidden border border-gray-200 bg-emerald-500 shadow-inner";
+
+        for (let i = 0; i < 24; i++) {
+          let totalMenitMulai = 8 * 60 + (i * 30);
+          let jamMulaiBlok = String(Math.floor(totalMenitMulai / 60)).padStart(2, '0') + ":" + String(totalMenitMulai % 60).padStart(2, '0');
+          
+          let totalMenitSelesai = totalMenitMulai + 30;
+          let jamSelesaiBlok = String(Math.floor(totalMenitSelesai / 60)).padStart(2, '0') + ":" + String(totalMenitSelesai % 60).padStart(2, '0');
+
+          const bookingTerpilih = bookingUnit.find(b => {
+            return (jamMulaiBlok >= b.Jam_Mulai) && (jamSelesaiBlok <= b.Jam_Selesai);
+          });
+
+          const blokCell = document.createElement('div');
+          
+          if (bookingTerpilih) {
+            blokCell.className = "bg-rose-500 border-r border-rose-600/20 p-1 flex flex-col justify-center overflow-hidden text-white relative group cursor-not-allowed select-none shadow-sm";
+            blokCell.innerHTML = `
+              <div class="text-[9px] font-bold leading-none truncate px-0.5">${bookingTerpilih.Nama_Peminjam}</div>
+              <div class="text-[8px] opacity-90 truncate px-0.5 mt-0.5">${bookingTerpilih.Departemen}</div>
+              
+              <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded-xl p-3 whitespace-nowrap z-30 shadow-2xl border border-gray-700">
+                <b class="text-blue-400">${bookingTerpilih.Nama_Peminjam}</b> (${bookingTerpilih.Departemen})<br/>
+                <span class="text-gray-300">Waktu: ${bookingTerpilih.Jam_Mulai} - ${bookingTerpilih.Jam_Selesai}</span><br/>
+                <span class="text-gray-400">WhatsApp: +${bookingTerpilih.No_HP}</span>
+              </div>
+            `;
+          } else {
+            blokCell.className = "hover:bg-emerald-400 border-r border-emerald-600/10 cursor-pointer transition-colors relative group";
+            blokCell.onclick = () => bukaFormBookingLangsung(proyektor.ID_Proyektor, jamMulaiBlok);
+            blokCell.innerHTML = `
+              <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-emerald-800 text-white text-[10px] rounded-md px-2 py-0.5 whitespace-nowrap z-30 shadow-md">
+                Tersedia: ${jamMulaiBlok}
+              </div>
+            `;
+          }
+          barWrapper.appendChild(blokCell);
+        }
+
+        rowDiv.appendChild(barWrapper);
+        container.appendChild(rowDiv);
+      });
+    }
+
+    // 7. DASHBOARD -> FORM INTERACTION INTERFACE
+    function bukaFormBookingLangsung(idProyektor, jamMulai) {
+      switchPage('booking');
+      
+      document.getElementById('form-id-proyektor').value = idProyektor;
+      document.getElementById('form-tanggal').value = dapatkanFormatTanggal(tanggalAktif);
+      document.getElementById('form-jam-mulai').value = jamMulai;
+      
+      let [jam, menit] = jamMulai.split(':').map(Number);
+      let jamSelesai = String(jam + 1).padStart(2, '0') + ":" + String(menit).padStart(2, '0');
+      if (jamSelesai > "20:00") jamSelesai = "20:00";
+      
+      document.getElementById('form-jam-selesai').value = jamSelesai;
+    }
+
+    function populateDropdownProyektor() {
+      const select = document.getElementById('form-id-proyektor');
+      if (!select) return;
+      select.innerHTML = "";
+      
+      const proyektorAktif = masterProyektor.filter(p => p.Status_Aktif === "Y" || p.Status_Aktif === true);
+      proyektorAktif.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.ID_Proyektor;
+        opt.innerText = p.Nama_Proyektor;
+        select.appendChild(opt);
+      });
+    }
+
+    // 8. DATA WRITER INTEGRATION - SAVE BOOKING RESERVATION
+    async function handleSimpanBooking(event) {
+      event.preventDefault();
+      
+      const btnSubmit = document.getElementById('btn-submit-booking');
+      const jamMulai = document.getElementById('form-jam-mulai').value;
+      const jamSelesai = document.getElementById('form-jam-selesai').value;
+      const noHpInput = document.getElementById('form-nohp').value;
+
+      if (jamMulai < "08:00" || jamSelesai > "20:00") {
+        alert("Peminjaman wajib berada dalam koridor waktu operasional kantor (08:00 - 20:00).");
+        return;
+      }
+      if (jamSelesai <= jamMulai) {
+        alert("Format Jam Selesai harus di atas Jam Mulai.");
+        return;
+      }
+
+      let [hMulai, mMulai] = jamMulai.split(':').map(Number);
+      let [hSelesai, mSelesai] = jamSelesai.split(':').map(Number);
+      if (((hSelesai * 60) + mSelesai) - ((hMulai * 60) + mMulai) < 60) {
+        alert("Minimal durasi peminjaman proyektor adalah 1 Jam.");
+        return;
+      }
+
+      let cleanNoHp = noHpInput.replace(/[^0-9]/g, '');
+      if (cleanNoHp.startsWith('0')) {
+        cleanNoHp = '62' + cleanNoHp.slice(1);
+      } else if (!cleanNoHp.startsWith('62')) {
+        cleanNoHp = '62' + cleanNoHp;
+      }
+
+      const payload = {
+        action: "createBooking",
+        id_proyektor: document.getElementById('form-id-proyektor').value,
+        nama_peminjam: document.getElementById('form-nama').value,
+        departemen: document.getElementById('form-dept').value,
+        no_hp: cleanNoHp,
+        tanggal: document.getElementById('form-tanggal').value,
+        jam_mulai: jamMulai,
+        jam_selesai: jamSelesai
+      };
+
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Memproses Validasi...`;
+
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        
+        if (result.status === "success") {
+          alert(result.message);
+          document.getElementById('form-booking-proyektor').reset();
+          populateDropdownProyektor();
+          
+          tanggalAktif = new Date(payload.tanggal);
+          updateLabelTanggal();
+          switchPage('dashboard');
+          muatDataDashboard();
+        } else {
+          alert("Gagal Konfirmasi: " + result.message);
+        }
+      } catch (error) {
+        alert("Koneksi gagal terhubung dengan backend database Apps Script.");
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<span class="material-icons text-sm">check_circle</span> Konfirmasi & Simpan Booking`;
+      }
+    }
+
+    // 9. LOGISTICS MANAGEMENT INTEGRATION - RENDER & UPDATE LOG FISIK
+    function renderHalamanKontrol(dataBooking) {
+      const tbody = document.getElementById('table-body-kontrol');
+      if (!tbody) return;
+
+      if (dataBooking.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-medium">Tidak ada aktivitas peminjaman pada tanggal ini.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      const sekarang = new Date();
+      const jamSekarangString = String(sekarang.getHours()).padStart(2, '0') + ":" + String(sekarang.getMinutes()).padStart(2, '0');
+      const tglHariIniString = dapatkanFormatTanggal(sekarang);
+
+      dataBooking.forEach(b => {
+        const proyektor = masterProyektor.find(p => p.ID_Proyektor == b.ID_Proyektor);
+        const namaProyektor = proyektor ? proyektor.Nama_Proyektor : `Unit ID: ${b.ID_Proyektor}`;
+
+        let badgeClass = "bg-gray-100 text-gray-600 border-gray-200";
+        let statusText = b.Status_Log;
+        let aksiButtonHTML = "";
+
+        let jamAmbilFisik = b.Jam_Ambil_Aktual;
+        let jamKembaliFisik = b.Jam_Kembali_Aktual;
+        
+        if (jamAmbilFisik === "-" && jamKembaliFisik === "-") {
+          statusText = "Belum Diambil";
+          badgeClass = "bg-amber-50 text-amber-700 border border-amber-200";
+          aksiButtonHTML = `
+            <button onclick="eksekusiAksiLog('${b.ID_Booking}', 'AMBIL')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shadow-sm">
+              Konfirmasi Ambil
+            </button>
+          `;
+        } else if (jamAmbilFisik !== "-" && jamKembaliFisik === "-") {
+          statusText = "Sedang Digunakan";
+          badgeClass = "bg-blue-50 text-blue-700 border border-blue-200";
+
+          if (tglHariIniString === b.Tanggal && jamSekarangString > b.Jam_Selesai) {
+            statusText = "TERLAMBAT KEMBALI";
+            badgeClass = "bg-rose-50 text-rose-700 border border-rose-300 animate-pulse font-bold";
+          }
+
+          aksiButtonHTML = `
+            <button onclick="eksekusiAksiLog('${b.ID_Booking}', 'KEMBALI')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shadow-sm">
+              Konfirmasi Kembali
+            </button>
+          `;
+        } else if (jamKembaliFisik !== "-") {
+          statusText = "Selesai";
+          badgeClass = "bg-emerald-50 text-emerald-700 border border-emerald-100";
+          aksiButtonHTML = `<span class="text-xs text-gray-400 italic flex items-center justify-end gap-1 font-medium"><span class="material-icons text-sm text-emerald-500">task_alt</span> Kembali Sukses</span>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
+        tr.innerHTML = `
+          <td class="px-6 py-4">
+            <div class="font-bold text-gray-800">${b.Nama_Peminjam}</div>
+            <div class="text-xs text-gray-400 font-medium">${b.Departemen} • WA: +${b.No_HP}</div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="font-bold text-gray-700">${b.Jam_Mulai} - ${b.Jam_Selesai}</div>
+            <div class="text-xs text-gray-400 font-medium">${namaProyektor}</div>
+          </td>
+          <td class="px-6 py-4 font-mono text-xs font-semibold text-gray-500">${jamAmbilFisik}</td>
+          <td class="px-6 py-4 font-mono text-xs font-semibold text-gray-500">${jamKembaliFisik}</td>
+          <td class="px-6 py-4">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
+              ${statusText}
+            </span>
+          </td>
+          <td class="px-6 py-4 text-right">${aksiButtonHTML}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function eksekusiAksiLog(idBooking, tipeAksi) {
+      if (!confirm(`Konfirmasi penyerahan fisik proyektor untuk status [${tipeAksi}]?`)) return;
+
+      const payload = { action: "updateLog", id_booking: idBooking, tipe_aksi: tipeAksi };
+
+      try {
+        const response = await fetch(BACKEND_URL, { method: "POST", body: JSON.stringify(payload) });
+        const result = await response.json();
+
+        if (result.status === "success") {
+          alert(result.message);
+          muatDataDashboard();
+        } else {
+          alert("Gagal memproses perubahan: " + result.message);
+        }
+      } catch (error) {
+        alert("Gagal terhubung dengan server logistik.");
+      }
+    }
+
+    // 10. SYSTEM INVENTORY SETTINGS INTERFACE
+    function renderTableSetting() {
+      const tbody = document.getElementById('table-body-setting');
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      
+      masterProyektor.forEach(p => {
+        const isAktif = p.Status_Aktif === "Y" || p.Status_Aktif === true;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-mono text-xs font-bold text-gray-400">${p.ID_Proyektor}</td>
+          <td class="px-4 py-3 font-bold text-gray-800">${p.Nama_Proyektor}</td>
+          <td class="px-4 py-3 text-gray-500 text-xs font-medium">${p.Deskripsi || p['Lokasi/Deskripsi'] || '-'}</td>
+          <td class="px-4 py-3 text-right">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isAktif ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-400'}">
+              ${isAktif ? 'ONLINE' : 'OFFLINE'}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function handleTambahProyektor(event) {
+      event.preventDefault();
+      
+      const btnSubmit = document.getElementById('btn-submit-setting');
+      const payload = {
+        action: "updateMaster",
+        tipe_aksi: "TAMBAH",
+        nama_proyektor: document.getElementById('set-nama').value,
+        deskripsi: document.getElementById('set-deskripsi').value
+      };
+      
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Menyimpan Data...`;
+      
+      try {
+        const response = await fetch(BACKEND_URL, { method: "POST", body: JSON.stringify(payload) });
+        const result = await response.json();
+        
+        if (result.status === "success") {
+          alert(result.message);
+          document.getElementById('form-tambah-proyektor').reset();
+          
+          await muatMasterProyektor();
+          muatDataDashboard();
+        } else {
+          alert("Gagal menambahkan unit: " + result.message);
+        }
+      } catch (error) {
+        alert("Gagal melakukan kontak ke sistem inventaris.");
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<span class="material-icons text-sm">save</span> Daftarkan Perangkat`;
+      }
     }
   </script>
 </body>
