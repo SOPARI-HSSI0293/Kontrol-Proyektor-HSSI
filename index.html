@@ -94,11 +94,23 @@
           </div>
         </div>
         
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6 overflow-x-auto">
-          <div class="grid grid-cols-12 text-center text-xs font-bold text-gray-400 border-b border-gray-100 pb-2 min-w-[850px]">
-            <div>08:00</div><div>09:00</div><div>10:00</div><div>11:00</div><div>12:00</div><div>13:00</div>
-            <div>14:00</div><div>15:00</div><div>16:00</div><div>17:00</div><div>18:00</div><div>19:00</div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4 overflow-x-auto">
+          <div class="flex justify-between text-[11px] font-bold text-gray-400 px-1 min-w-[850px] select-none">
+            <div class="w-0 text-left whitespace-nowrap">08:00</div>
+            <div class="w-0 text-center whitespace-nowrap">09:00</div>
+            <div class="w-0 text-center whitespace-nowrap">10:00</div>
+            <div class="w-0 text-center whitespace-nowrap">11:00</div>
+            <div class="w-0 text-center whitespace-nowrap">12:00</div>
+            <div class="w-0 text-center whitespace-nowrap">13:00</div>
+            <div class="w-0 text-center whitespace-nowrap">14:00</div>
+            <div class="w-0 text-center whitespace-nowrap">15:00</div>
+            <div class="w-0 text-center whitespace-nowrap">16:00</div>
+            <div class="w-0 text-center whitespace-nowrap">17:00</div>
+            <div class="w-0 text-center whitespace-nowrap">18:00</div>
+            <div class="w-0 text-center whitespace-nowrap">19:00</div>
+            <div class="w-0 text-right whitespace-nowrap">20:00</div>
           </div>
+          
           <div id="container-bar-proyektor" class="space-y-6 min-w-[850px]">
             <div class="text-center py-8 text-gray-400 flex flex-col items-center justify-center gap-2">
               <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -263,6 +275,7 @@
   </div>
 
   <script>
+    // MASUKKAN URL GOOGLE APPS SCRIPT WEB APP ANDA DI BAWAH INI
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbziBkZjCHrKhjpNtFr8BfgQ6HhLK1sl4ILchdSJSCcIwviMX8ATYzOUxxilZ0UgNF6tJg/exec";
 
     let tanggalAktif = new Date();
@@ -278,7 +291,6 @@
       muatDataDashboard();
     });
 
-    // SIDEBAR TOGGLE MECHANISM
     const btnToggle = document.getElementById('btnToggleSidebar');
     const sidebar = document.getElementById('sidebar');
     const sidebarTexts = document.querySelectorAll('.sidebar-text');
@@ -299,7 +311,6 @@
       }
     });
 
-    // PAGE SWITCHER
     function switchPage(pageId) {
       document.querySelectorAll('.page-section').forEach(section => section.classList.add('hidden'));
       document.getElementById(`page-${pageId}`).classList.remove('hidden');
@@ -341,12 +352,10 @@
       muatDataDashboard();
     }
 
-    // LOAD MASTER PROYEKTOR
     async function muatMasterProyektor() {
       try {
         const response = await fetch(`${BACKEND_URL}?action=getMasterProyektor`);
         masterProyektor = await response.json();
-        
         renderTableSetting();
         populateDropdownProyektor();
       } catch (error) {
@@ -354,7 +363,6 @@
       }
     }
 
-    // LOAD DATA DASHBOARD & KONTROL
     async function muatDataDashboard() {
       const container = document.getElementById('container-bar-proyektor');
       const tglString = dapatkanFormatTanggal(tanggalAktif);
@@ -374,7 +382,7 @@
       }
     }
 
-    // RENDER VISUAL TIMELINE GRID
+    // RENDER VISUAL TIMELINE GRID DENGAN STRUKTUR AMAN PER 30 MENIT (08:00 - 20:00)
     function renderDashboardBars(dataBooking) {
       const container = document.getElementById('container-bar-proyektor');
       container.innerHTML = "";
@@ -387,7 +395,6 @@
       }
 
       proyektorAktif.forEach(proyektor => {
-        // PERBAIKAN UTAMA: String ID dibersihkan spasinya agar akurat mencocokkan Sheet Data_Booking
         const pIDClean = String(proyektor.ID_Proyektor).trim();
         const bookingUnit = dataBooking.filter(b => String(b.ID_Proyektor).trim() === pIDClean);
 
@@ -404,15 +411,15 @@
         const barWrapper = document.createElement('div');
         barWrapper.className = "grid grid-cols-24 h-12 w-full rounded-xl overflow-hidden border border-gray-200 bg-emerald-500 shadow-inner";
 
+        // Iterasi sebanyak 24 blok (12 jam x 2 blok/jam)
         for (let i = 0; i < 24; i++) {
           let totalMenitMulai = 8 * 60 + (i * 30);
           let jamMulaiBlok = String(Math.floor(totalMenitMulai / 60)).padStart(2, '0') + ":" + String(totalMenitMulai % 60).padStart(2, '0');
-          
-          let totalMenitSelesai = totalMenitMulai + 30;
-          let jamSelesaiBlok = String(Math.floor(totalMenitSelesai / 60)).padStart(2, '0') + ":" + String(totalMenitSelesai % 60).padStart(2, '0');
 
           const bookingTerpilih = bookingUnit.find(b => {
-            return (jamMulaiBlok >= b.Jam_Mulai) && (jamMulaiBlok < b.Jam_Selesai);
+            let bMulai = b.Jam_Mulai;
+            let bSelesai = b.Jam_Selesai;
+            return (jamMulaiBlok >= bMulai) && (jamMulaiBlok < bSelesai);
           });
 
           const blokCell = document.createElement('div');
@@ -445,14 +452,11 @@
       });
     }
 
-    // AUTOFILL FROM TIMELINE GRID CLICK
     function bukaFormBookingLangsung(idProyektor, jamMulai) {
       switchPage('booking');
-      
       document.getElementById('form-id-proyektor').value = idProyektor;
       document.getElementById('form-tanggal').value = dapatkanFormatTanggal(tanggalAktif);
       
-      // Pembulatan otomatis jam menit ke format jam bulat terdekat saat dilempar ke formulir
       let [hStr, mStr] = jamMulai.split(':');
       let jamMulaiBulat = hStr + ":00";
       document.getElementById('form-jam-mulai').value = jamMulaiBulat;
@@ -478,7 +482,6 @@
       });
     }
 
-    // HANDLE SAVE RESERVATION SUBMIT
     async function handleSimpanBooking(event) {
       event.preventDefault();
       
@@ -544,7 +547,6 @@
       }
     }
 
-    // RENDER LOGISTIK CONTROL TABLE
     function renderHalamanKontrol(dataBooking) {
       const tbody = document.getElementById('table-body-kontrol');
       if (!tbody) return;
@@ -640,7 +642,6 @@
       }
     }
 
-    // SETTING MASTER TABLE
     function renderTableSetting() {
       const tbody = document.getElementById('table-body-setting');
       if (!tbody) return;
