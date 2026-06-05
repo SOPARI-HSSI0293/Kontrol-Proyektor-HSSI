@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Kontrol Proyektor Kantor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    /* Transisi halus saat sidebar menyiut */
+    .transition-sidebar { transition: width 0.3s ease-in-out; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased h-screen flex flex-col overflow-hidden">
+
+  <header class="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4 z-10 flex-shrink-0">
+    <div class="flex items-center space-x-3">
+      <button id="btnToggleSidebar" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 focus:outline-none">
+        <span class="material-icons">menu</span>
+      </button>
+      <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
+        <span class="material-icons text-blue-600">videocam</span> ProjecTrack
+      </span>
+    </div>
+    <div class="flex items-center space-x-2 text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1.5 rounded-full">
+      <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+      <span>Connected to Sheets DB</span>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+    
+    <aside id="sidebar" class="transition-sidebar w-64 bg-white border-r border-gray-200 flex flex-col justify-between flex-shrink-0">
+      <div class="p-4 space-y-2">
+        
+        <button onclick="switchPage('dashboard')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-700 bg-blue-50 text-blue-600 font-medium rounded-xl transition">
+          <span class="material-icons">dashboard</span>
+          <span class="sidebar-text opacity-100 transition-opacity">Dashboard</span>
+        </button>
+
+        <button onclick="switchPage('booking')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+          <span class="material-icons">add_box</span>
+          <span class="sidebar-text opacity-100 transition-opacity">Form Booking</span>
+        </button>
+
+        <button onclick="switchPage('kontrol')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+          <span class="material-icons">swap_horizontal_circle</span>
+          <span class="sidebar-text opacity-100 transition-opacity">Kontrol Keluar/Masuk</span>
+        </button>
+
+        <button onclick="switchPage('setting')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+          <span class="material-icons">settings</span>
+          <span class="sidebar-text opacity-100 transition-opacity">Pengaturan</span>
+        </button>
+
+      </div>
+
+      <div class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center sidebar-text">
+        v1.0.0 &copy; 2026 Internal IT Tool
+      </div>
+    </aside>
+
+    <main id="main-content" class="flex-1 p-6 overflow-y-auto bg-gray-50">
+      
+      <div id="page-dashboard" class="page-section space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Dashboard Visual Proyektor</h1>
+            <p class="text-sm text-gray-500">Pantau ketersediaan slot proyektor hari ini secara real-time.</p>
+          </div>
+          <div class="flex items-center space-x-2 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm">
+            <button class="p-2 hover:bg-gray-100 rounded-lg text-gray-600"><span class="material-icons text-sm">chevron_left</span></button>
+            <span class="font-semibold text-sm px-2 text-gray-700">Jumat, 05 Jun 2026</span>
+            <button class="p-2 hover:bg-gray-100 rounded-lg text-gray-600"><span class="material-icons text-sm">chevron_right</span></button>
+          </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+          <p class="text-gray-400 text-sm">Visualisasi Bar Linier Proyektor akan tampil di sini...</p>
+        </div>
+      </div>
+
+      <div id="page-booking" class="page-section hidden space-y-6">
+        <h1 class="text-2xl font-bold text-gray-900">Form Booking Proyektor</h1>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-gray-400 text-sm">Form peminjaman akan berada di sini...</p>
+        </div>
+      </div>
+
+      <div id="page-kontrol" class="page-section hidden space-y-6">
+        <h1 class="text-2xl font-bold text-gray-900">Kontrol Keluar / Masuk Aktual</h1>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-gray-400 text-sm">Log status aktual serah terima proyektor...</p>
+        </div>
+      </div>
+
+      <div id="page-setting" class="page-section hidden space-y-6">
+        <h1 class="text-2xl font-bold text-gray-900">Pengaturan Sistem</h1>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-gray-400 text-sm">Manajemen penambahan/pengurangan master proyektor...</p>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    // URL WEB APP APPS SCRIPT ANDA
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbziBkZjCHrKhjpNtFr8BfgQ6HhLK1sl4ILchdSJSCcIwviMX8ATYzOUxxilZ0UgNF6tJg/exec";
+
+    // 1. Logika Menyutkan Sidebar (Collapsible Sidebar)
+    const btnToggle = document.getElementById('btnToggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarTexts = document.querySelectorAll('.sidebar-text');
+    let isCollapsed = false;
+
+    btnToggle.addEventListener('click', () => {
+      isCollapsed = !isCollapsed;
+      if (isCollapsed) {
+        sidebar.classList.remove('w-64');
+        sidebar.classList.add('w-20');
+        sidebarTexts.forEach(text => text.classList.add('hidden'));
+      } else {
+        sidebar.classList.remove('w-20');
+        sidebar.classList.add('w-64');
+        sidebarTexts.forEach(text => text.classList.remove('hidden'));
+      }
+    });
+
+    // 2. Logika Perpindahan Halaman (SPA - Single Page Application)
+    function switchPage(pageId) {
+      // Sembunyikan semua section
+      document.querySelectorAll('.page-section').forEach(section => {
+        section.classList.add('hidden');
+      });
+      // Tampilkan section terpilih
+      document.getElementById(`page-${pageId}`).classList.remove('hidden');
+
+      // Update styling tombol di sidebar agar aktif
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('bg-blue-50', 'text-blue-600');
+        btn.classList.add('text-gray-600', 'hover:bg-gray-50');
+      });
+      
+      // Beri style aktif pada tombol yang diklik
+      event.currentTarget.classList.add('bg-blue-50', 'text-blue-600');
+      event.currentTarget.classList.remove('text-gray-600', 'hover:bg-gray-50');
+    }
+  </script>
+</body>
+</html>
