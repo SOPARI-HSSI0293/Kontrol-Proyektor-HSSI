@@ -69,7 +69,7 @@
         </button>
       </div>
       <div id="sidebar-footer" class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center whitespace-nowrap">
-        v1.2.0 &copy; 2026 | Sopari
+        v1.3.0 &copy; 2026 | Sopari
       </div>
     </aside>
 
@@ -208,20 +208,20 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm relative">
+          <div class="max-h-[60vh] overflow-y-auto relative rounded-2xl">
             <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  <th class="px-6 py-4">Peminjam</th>
-                  <th class="px-6 py-4">Jadwal Penggunaan</th>
-                  <th class="px-6 py-4">Jam Ambil (Fisik)</th>
-                  <th class="px-6 py-4">Jam Kembali (Fisik)</th>
-                  <th class="px-6 py-4">Status Logistik</th>
-                  <th class="px-6 py-4 text-right">Verifikasi Petugas</th>
+              <thead class="sticky top-0 bg-gray-50 z-10 shadow-[0_1px_0_0_#e5e7eb]">
+                <tr class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th class="px-6 py-4 bg-gray-50">Peminjam</th>
+                  <th class="px-6 py-4 bg-gray-50">Jadwal Penggunaan</th>
+                  <th class="px-6 py-4 bg-gray-50">Jam Ambil (Fisik)</th>
+                  <th class="px-6 py-4 bg-gray-50">Jam Kembali (Fisik)</th>
+                  <th class="px-6 py-4 bg-gray-50">Status Logistik</th>
+                  <th class="px-6 py-4 bg-gray-50 text-right">Verifikasi Petugas</th>
                 </tr>
               </thead>
-              <tbody id="table-body-kontrol" class="divide-y divide-gray-100 text-sm text-gray-600">
+              <tbody id="table-body-kontrol" class="divide-y divide-gray-100 text-sm text-gray-600 bg-white">
                 <tr>
                   <td colspan="6" class="text-center py-8 text-gray-400">Menyinkronkan log fisik...</td>
                 </tr>
@@ -290,7 +290,7 @@
         <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Analisa & Utilisasi Perangkat</h1>
-            <p class="text-sm text-gray-500">Breakdown jumlah penggunaan masing-masing perangkat vs Daftar Tunggu.</p>
+            <p class="text-sm text-gray-500">Breakdown jumlah durasi slot (Jam) masing-masing perangkat vs Daftar Tunggu.</p>
           </div>
           
           <div class="flex flex-wrap items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
@@ -699,7 +699,6 @@
       }
     }
 
-    // UPDATE: FUNGSI RENDER CHART REPORT (MULTIPLE DATASET)
     async function loadReportChart() {
       const start = document.getElementById('filter-start').value;
       const end = document.getElementById('filter-end').value;
@@ -722,7 +721,6 @@
       const ctx = document.getElementById('utilizationChart').getContext('2d');
       if (utilChart) utilChart.destroy();
 
-      // Palet warna yang cukup untuk membedakan masing-masing perangkat
       const baseColors = ['rgba(37, 99, 235, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(139, 92, 246, 0.8)', 'rgba(14, 165, 233, 0.8)'];
       const borderColors = ['rgba(37, 99, 235, 1)', 'rgba(16, 185, 129, 1)', 'rgba(245, 158, 11, 1)', 'rgba(139, 92, 246, 1)', 'rgba(14, 165, 233, 1)'];
 
@@ -730,15 +728,14 @@
       let colorIdx = 0;
 
       for (const [key, dataObj] of Object.entries(datasetsObj)) {
-        // Konversi objek mapping date:count ke bentuk array murni sesuai sumbu X (labels)
         let dataArray = labels.map(l => dataObj[l]);
 
         if (key === "Uncovered Demand") {
           chartDatasets.push({
             type: 'line',
-            label: 'Tak Terpenuhi (Uncovered)',
+            label: 'Tak Terpenuhi (Uncovered Slots)',
             data: dataArray,
-            backgroundColor: 'rgba(225, 29, 72, 0.1)', // Rose
+            backgroundColor: 'rgba(225, 29, 72, 0.1)', 
             borderColor: 'rgba(225, 29, 72, 1)',
             borderWidth: 3,
             fill: true,
@@ -746,7 +743,6 @@
             pointBackgroundColor: 'rgba(225, 29, 72, 1)'
           });
         } else {
-          // Setiap proyektor akan memiliki bar-nya sendiri
           chartDatasets.push({
             type: 'bar',
             label: key,
@@ -761,7 +757,7 @@
       }
 
       utilChart = new Chart(ctx, {
-        type: 'bar', // Tipe utama adalah bar
+        type: 'bar', 
         data: {
           labels: labels,
           datasets: chartDatasets
@@ -774,10 +770,11 @@
             y: {
               beginAtZero: true,
               ticks: { stepSize: 1, precision: 0 },
-              title: { display: true, text: 'Jumlah Sesi', font: { weight: 'bold' } }
+              // UPDATE: Label dirubah agar manajemen mengerti ini adalah Jam
+              title: { display: true, text: 'Jumlah Slot (Jam)', font: { weight: 'bold' } } 
             },
             x: {
-              stacked: false, // Set ke true jika bar perangkat ingin ditumpuk ke atas (stacked)
+              stacked: false, 
               grid: { display: false }
             }
           },
@@ -789,6 +786,7 @@
       });
     }
 
+    // UPDATE: FUNGSI RENDER HALAMAN KONTROL (Logika Sorting Data)
     function renderHalamanKontrol(dataBooking) {
       const tbody = document.getElementById('table-body-kontrol');
       if (!tbody) return;
@@ -803,7 +801,28 @@
       const jamSekarangString = String(sekarang.getHours()).padStart(2, '0') + ":" + String(sekarang.getMinutes()).padStart(2, '0');
       const tglHariIniString = dapatkanFormatTanggal(sekarang);
 
-      dataBooking.forEach(b => {
+      // FUNGSI HELPER UNTUK MENENTUKAN PRIORITAS URUTAN (SORTING)
+      function getPrioritasUrutan(b) {
+        let ambil = b.Jam_Ambil_Aktual;
+        let kembali = b.Jam_Kembali_Aktual;
+        if (ambil === "-" && kembali === "-") return 1; // Prioritas 1: Belum Diambil (Paling Atas)
+        if (ambil !== "-" && kembali === "-") return 2; // Prioritas 2: Sedang Digunakan (Tengah)
+        return 3;                                       // Prioritas 3: Selesai (Paling Bawah)
+      }
+
+      // Lakukan Sorting Data
+      let sortedBooking = [...dataBooking].sort((a, b) => {
+        let pA = getPrioritasUrutan(a);
+        let pB = getPrioritasUrutan(b);
+        if (pA === pB) {
+          // Jika status sama, urutkan berdasarkan Jam Mulai secara kronologis
+          return a.Jam_Mulai.localeCompare(b.Jam_Mulai); 
+        }
+        return pA - pB;
+      });
+
+      // Render data yang sudah diurutkan
+      sortedBooking.forEach(b => {
         const proyektor = masterProyektor.find(p => String(p.ID_Proyektor).trim() === String(b.ID_Proyektor).trim());
         const namaProyektor = proyektor ? proyektor.Nama_Proyektor : `ID: ${b.ID_Proyektor}`;
 
@@ -876,6 +895,7 @@
         const result = await response.json();
         if (result.status === "success") {
           alert(result.message);
+          // Fungsi muatDataDashboard() akan otomatis me-refresh tabel dan urutannya
           muatDataDashboard();
         } else {
           alert("Gagal: " + result.message);
@@ -908,11 +928,9 @@
       });
     }
 
-    // UPDATE: FUNGSI TAMBAH PROYEKTOR DENGAN OTORISASI PASSWORD
     async function handleTambahProyektor(event) {
       event.preventDefault();
 
-      // Lapisan Keamanan Password
       const passOtorisasi = prompt("Masukkan Password Otorisasi untuk menambahkan perangkat:");
       if (passOtorisasi !== "go anzeni") {
         alert("Peringatan: Password salah! Anda tidak memiliki izin untuk mendaftarkan perangkat baru.");
