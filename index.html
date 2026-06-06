@@ -69,7 +69,7 @@
         </button>
       </div>
       <div id="sidebar-footer" class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center whitespace-nowrap">
-        v1.4.1 &copy; 2026 | Sopari
+        v1.4.2 &copy; 2026 | Sopari
       </div>
     </aside>
 
@@ -358,7 +358,7 @@
   </div>
 
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwCTyhZAdbSr__zHiNb55uQvEnafWLwS0nr4i-8cviaJFZ386noNB6TiRGIVqSTGrpvBg/exec";
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbziBkZjCHrKhjpNtFr8BfgQ6HhLK1sl4ILchdSJSCcIwviMX8ATYzOUxxilZ0UgNF6tJg/exec";
 
     let tanggalAktif = new Date();
     let masterProyektor = [];
@@ -784,7 +784,6 @@
       });
     }
 
-    // UPDATE: PERBAIKAN TOTAL SINKRONISASI JAM JADWAL PENGGUNAAN (:00)
     function renderHalamanKontrol(dataBooking) {
       const tbody = document.getElementById('table-body-kontrol');
       if (!tbody) return;
@@ -820,30 +819,6 @@
         const proyektor = masterProyektor.find(p => String(p.ID_Proyektor).trim() === String(b.ID_Proyektor).trim());
         const namaProyektor = proyektor ? proyektor.Nama_Proyektor : `ID: ${b.ID_Proyektor}`;
 
-        // PERBAIKAN CERDAS FORMAT JAM: Lakukan pembulatan matematika ke atas jika menit melewati angka 45 akibat sisa distorsi zona waktu
-        let jamMulaiClean = b.Jam_Mulai;
-        let jamSelesaiClean = b.Jam_Selesai;
-
-        if (b.Jam_Mulai.includes(":")) {
-          let parts = b.Jam_Mulai.split(":");
-          let hh = parseInt(parts[0], 10);
-          let mm = parseInt(parts[1], 10);
-          if (mm > 45) {
-            hh = (hh + 1) % 24;
-          }
-          jamMulaiClean = String(hh).padStart(2, '0') + ":00";
-        }
-
-        if (b.Jam_Selesai.includes(":")) {
-          let parts = b.Jam_Selesai.split(":");
-          let hh = parseInt(parts[0], 10);
-          let mm = parseInt(parts[1], 10);
-          if (mm > 45) {
-            hh = (hh + 1) % 24;
-          }
-          jamSelesaiClean = String(hh).padStart(2, '0') + ":00";
-        }
-
         let badgeClass = "bg-gray-100 text-gray-600 border-gray-200";
         let statusText = b.Status_Log;
         let aksiButtonHTML = "";
@@ -863,7 +838,7 @@
           statusText = "Sedang Digunakan";
           badgeClass = "bg-blue-50 text-blue-700 border border-blue-200";
 
-          if (tglHariIniString === b.Tanggal && jamSekarangString > jamSelesaiClean) {
+          if (tglHariIniString === b.Tanggal && jamSekarangString > b.Jam_Selesai) {
             statusText = "TERLAMBAT KEMBALI";
             badgeClass = "bg-rose-50 text-rose-700 border border-rose-300 animate-pulse font-bold";
           }
@@ -888,7 +863,7 @@
             <div class="text-xs text-gray-400 font-medium">${b.Departemen} • WA: +${b.No_HP}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="font-bold text-gray-700">${jamMulaiClean} - ${jamSelesaiClean}</div>
+            <div class="font-bold text-gray-700">${b.Jam_Mulai} - ${b.Jam_Selesai}</div>
             <div class="text-[11px] text-blue-600 font-semibold bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-md inline-block mt-0.5">${b.Tanggal}</div>
             <div class="text-xs text-gray-400 mt-1">${namaProyektor}</div>
           </td>
