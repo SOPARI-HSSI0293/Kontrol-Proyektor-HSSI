@@ -6,6 +6,7 @@
   <title>Sistem Kontrol Proyektor Kantor - ProTrack SPRI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .transition-sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
   </style>
@@ -29,12 +30,12 @@
         <span class="material-icons">menu</span>
       </button>
       <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
-        <span class="material-icons text-blue-600">videocam</span> ProTrack-SPRI
+        <span class="material-icons text-blue-600">videocam</span> ProTrack SPRI
       </span>
     </div>
     <div class="flex items-center space-x-2 text-sm text-gray-500 font-medium bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
       <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-      <span>DigitData Connected</span>
+      <span>Sheets Server Database Connected</span>
     </div>
   </header>
 
@@ -54,13 +55,17 @@
           <span class="material-icons">swap_horizontal_circle</span>
           <span class="sidebar-text opacity-100 whitespace-nowrap">Kontrol Keluar/Masuk</span>
         </button>
+        <button onclick="switchPage('laporan')" id="btn-nav-laporan" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+          <span class="material-icons">analytics</span>
+          <span class="sidebar-text opacity-100 whitespace-nowrap">Analisis & Laporan</span>
+        </button>
         <button onclick="switchPage('setting')" id="btn-nav-setting" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
           <span class="material-icons">settings</span>
           <span class="sidebar-text opacity-100 whitespace-nowrap">Pengaturan</span>
         </button>
       </div>
       <div id="sidebar-footer" class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center whitespace-nowrap">
-        v1.0.0 &copy; 2026 | Sopari
+        v1.0.0 &copy; 2026 Internal IT Tool
       </div>
     </aside>
 
@@ -69,8 +74,8 @@
       <div id="page-dashboard" class="page-section space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Kontrol Booking Proyektor PT HSSI</h1>
-            <p class="text-sm text-gray-500">...................................................................................................................................</p>
+            <h1 class="text-2xl font-bold text-gray-900">Dashboard Visual Proyektor</h1>
+            <p class="text-sm text-gray-500">Status ketersediaan unit hari ini secara real-time.</p>
           </div>
           <div class="flex items-center space-x-2 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm self-start sm:self-auto">
             <button onclick="ubahHari(-1)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition">
@@ -222,6 +227,59 @@
         </div>
       </div>
 
+      <div id="page-laporan" class="page-section hidden space-y-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Analisis Penggunaan Proyektor</h1>
+          <p class="text-sm text-gray-500">Pantau total durasi peminjaman dan tren pemanfaatan perangkat berdasarkan periode tertentu.</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-wrap items-end gap-4 max-w-4xl">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Tanggal Mulai</label>
+            <input type="date" id="lap-tanggal-mulai" class="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Tanggal Selesai</label>
+            <input type="date" id="lap-tanggal-selesai" class="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm">
+          </div>
+          <button onclick="prosesDataLaporan()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-xl transition text-sm flex items-center gap-1.5 shadow-sm">
+            <span class="material-icons text-sm">refresh</span> Tampilkan Laporan
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm lg:col-span-1 h-fit">
+            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-1.5 text-blue-600">
+              <span class="material-icons text-base">assessment</span> Total Durasi Booking
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr class="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase">
+                    <th class="px-3 py-2">Proyektor</th>
+                    <th class="px-3 py-2 text-right">Total Durasi</th>
+                  </tr>
+                </thead>
+                <tbody id="table-body-laporan" class="divide-y divide-gray-100 text-gray-600">
+                  <tr>
+                    <td colspan="2" class="text-center py-4 text-gray-400 text-xs">Silakan tentukan periode tanggal.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm lg:col-span-2">
+            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-1.5 text-indigo-600">
+              <span class="material-icons text-base">show_chart</span> Grafik Tren Booking Harian (Jam)
+            </h3>
+            <div class="relative w-full h-64">
+              <canvas id="chartTrenBooking"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="page-setting" class="page-section hidden space-y-6">
         <div>
           <h1 class="text-2xl font-bold text-gray-900">Pengaturan Perangkat</h1>
@@ -272,12 +330,13 @@
   </div>
 
   <script>
-    // MASUKKAN URL GOOGLE APPS SCRIPT WEB APP ANDA DI BAWAH INI
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbziBkZjCHrKhjpNtFr8BfgQ6HhLK1sl4ILchdSJSCcIwviMX8ATYzOUxxilZ0UgNF6tJg/exec";
+    // URL DEPLOYMENT GOOGLE APPS SCRIPT WEB APP
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwZ8tXqgS0w6e5h01UfK05X94_z166M973_v-C_N8228tD-7B5wZ6pCisd9u3K80r7v/exec";
 
     let tanggalAktif = new Date();
     let masterProyektor = [];
     let isCollapsed = false;
+    let chartInstance = null; // Menyimpan instansiasi grafik agar bisa di-reset dinamis
 
     window.addEventListener('DOMContentLoaded', async () => {
       setInterval(updateLiveClock, 1000);
@@ -286,6 +345,14 @@
       updateLabelTanggal();
       await muatMasterProyektor();
       muatDataDashboard();
+
+      // Inisialisasi default tanggal laporan (Rentang 1 Bulan ke belakang)
+      const hariIni = new Date();
+      const satuBulanLalu = new Date();
+      satuBulanLalu.setMonth(hariIni.getMonth() - 1);
+
+      document.getElementById('lap-tanggal-selesai').value = dapatkanFormatTanggal(hariIni);
+      document.getElementById('lap-tanggal-mulai').value = dapatkanFormatTanggal(satuBulanLalu);
     });
 
     const btnToggle = document.getElementById('btnToggleSidebar');
@@ -320,6 +387,11 @@
       const btnAktif = document.getElementById(`btn-nav-${pageId}`);
       if (btnAktif) {
         btnAktif.classList.add('bg-blue-50', 'text-blue-600', 'font-semibold');
+      }
+
+      // Otomatis memproses data laporan ketika halaman laporan dibuka
+      if (pageId === 'laporan') {
+        prosesDataLaporan();
       }
     }
 
@@ -379,7 +451,6 @@
       }
     }
 
-    // MODIFIKASI TERKONTROL: RENDER TIMELINE SKALA 60 MENIT (1 JAM PER BLOK)
     function renderDashboardBars(dataBooking) {
       const container = document.getElementById('container-bar-proyektor');
       container.innerHTML = "";
@@ -405,27 +476,23 @@
           </div>
         `;
 
-        // Menggunakan grid-cols-12 untuk skala 1 jam per blok (08:00 sampai 20:00 = 12 jam)
         const barWrapper = document.createElement('div');
         barWrapper.className = "grid grid-cols-12 h-12 w-full rounded-xl overflow-hidden border border-gray-200 bg-emerald-500 shadow-inner";
 
-        // Perulangan 12 kali (setiap i merepresentasikan 1 jam penuh)
         for (let i = 0; i < 12; i++) {
           let jamAngka = 8 + i;
           let jamMulaiBlok = String(jamAngka).padStart(2, '0') + ":00";
-          let jamTengahBlok = String(jamAngka).padStart(2, '0') + ":30"; // Untuk validasi jika booking dimulai jam x:30
+          let jamTengahBlok = String(jamAngka).padStart(2, '0') + ":30";
 
           const bookingTerpilih = bookingUnit.find(b => {
             let bMulai = b.Jam_Mulai;
             let bSelesai = b.Jam_Selesai;
-            // Blok ini ditandai merah jika waktu booking mencakup jam mulai blok ini atau pertengahan jam ini
             return (jamMulaiBlok >= bMulai && jamMulaiBlok < bSelesai) || (jamTengahBlok >= bMulai && jamTengahBlok < bSelesai);
           });
 
           const blokCell = document.createElement('div');
           
           if (bookingTerpilih) {
-            // Ditambahkan padding horizontal ekstra (px-2) agar tulisan Nama & Departemen memiliki ruang luas dan tidak terpotong
             blokCell.className = "bg-rose-500 border-r border-rose-600/20 px-2 flex flex-col justify-center overflow-hidden text-white relative group cursor-not-allowed select-none shadow-sm";
             blokCell.innerHTML = `
               <div class="text-[11px] font-bold leading-tight truncate">${bookingTerpilih.Nama_Peminjam}</div>
@@ -601,7 +668,6 @@
           aksiButtonHTML = `<span class="text-xs text-emerald-600 italic flex items-center justify-end gap-1 font-semibold"><span class="material-icons text-sm">task_alt</span> Selesai</span>`;
         }
 
-        // TAMPILAN TANGGAL DI BAWAH JADWAL: Jadwal Penggunaan memunculkan tanggal booking secara eksplisit dan jam rapi
         const tr = document.createElement('tr');
         tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
         tr.innerHTML = `
@@ -642,6 +708,155 @@
         }
       } catch (error) {
         alert("Gagal memproses ke database.");
+      }
+    }
+
+    async function prosesDataLaporan() {
+      const tglMulaiStr = document.getElementById('lap-tanggal-mulai').value;
+      const tglSelesaiStr = document.getElementById('lap-tanggal-selesai').value;
+      const tbody = document.getElementById('table-body-laporan');
+
+      if (!tglMulaiStr || !tglSelesaiStr) {
+        alert("Mohon tentukan tanggal mulai dan tanggal selesai!");
+        return;
+      }
+      if (tglSelesaiStr < tglMulaiStr) {
+        alert("Tanggal selesai tidak boleh mendahului tanggal mulai!");
+        return;
+      }
+
+      tbody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-gray-400 text-xs">Menganalisis database log...</td></tr>`;
+
+      try {
+        // Tarik data penuh menggunakan basis tanggal awal sebagai pemicu backend
+        const response = await fetch(`${BACKEND_URL}?action=getDashboard&tanggal=${tglMulaiStr}`);
+        const result = await response.json();
+
+        if (result.status !== "success") {
+          tbody.innerHTML = `<tr><td colspan="2" class="text-center text-rose-500 py-4 text-xs">Gagal: ${result.message}</td></tr>`;
+          return;
+        }
+
+        // 1. Filter data lokal berdasarkan periode kalender terpilih
+        const dataTerfilter = result.data.filter(b => b.Tanggal >= tglMulaiStr && b.Tanggal <= tglSelesaiStr);
+
+        // 2. Kalkulasi Akumulasi Total Jam per Unit Proyektor
+        let totalJamPerProyektor = {};
+        masterProyektor.forEach(p => {
+          totalJamPerProyektor[String(p.ID_Proyektor).trim()] = 0;
+        });
+
+        // 3. Susun Peta Grafik Harian Kontinu
+        let petaGrafikHarian = {};
+        let tglBerjalan = new Date(tglMulaiStr);
+        const tglAkhirLoop = new Date(tglSelesaiStr);
+
+        while (tglBerjalan <= tglAkhirLoop) {
+          const sTgl = dapatkanFormatTanggal(tglBerjalan);
+          petaGrafikHarian[sTgl] = {};
+          masterProyektor.forEach(p => {
+            petaGrafikHarian[sTgl][String(p.ID_Proyektor).trim()] = 0;
+          });
+          tglBerjalan.setDate(tglBerjalan.getDate() + 1);
+        }
+
+        // Loop kalkulasi selisih durasi jam operasional
+        dataTerfilter.forEach(b => {
+          const pID = String(b.ID_Proyektor).trim();
+          const jamMulaiInt = parseInt(b.Jam_Mulai.split(':')[0], 10);
+          const jamSelesaiInt = parseInt(b.Jam_Selesai.split(':')[0], 10);
+          const durasi = jamSelesaiInt - jamMulaiInt;
+
+          if (durasi > 0) {
+            if (totalJamPerProyektor[pID] !== undefined) {
+              totalJamPerProyektor[pID] += durasi;
+            }
+            if (petaGrafikHarian[b.Tanggal] && petaGrafikHarian[b.Tanggal][pID] !== undefined) {
+              petaGrafikHarian[b.Tanggal][pID] += durasi;
+            }
+          }
+        });
+
+        // 4. Render ke Tabel Ringkasan Samping
+        tbody.innerHTML = "";
+        masterProyektor.forEach(p => {
+          const pID = String(p.ID_Proyektor).trim();
+          const totalJam = totalJamPerProyektor[pID] || 0;
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
+          tr.innerHTML = `
+            <td class="px-3 py-3">
+              <div class="font-bold text-gray-800">${p.Nama_Proyektor}</div>
+              <div class="text-[10px] text-gray-400 font-mono">${pID}</div>
+            </td>
+            <td class="px-3 py-3 text-right font-bold text-blue-600">${totalJam} Jam</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // 5. Konfigurasi dan Render Garis Grafik Chart.js
+        const daftarLabelTanggal = Object.keys(petaGrafikHarian).sort();
+        const daftarWarna = [
+          { border: 'rgb(59, 130, 246)', bg: 'rgba(59, 130, 246, 0.05)' },
+          { border: 'rgb(16, 185, 129)', bg: 'rgba(16, 185, 129, 0.05)' },
+          { border: 'rgb(245, 158, 11)', bg: 'rgba(245, 158, 11, 0.05)' },
+          { border: 'rgb(139, 92, 246)', bg: 'rgba(139, 92, 246, 0.05)' }
+        ];
+
+        const kumpulanDataset = masterProyektor.map((p, indeks) => {
+          const pID = String(p.ID_Proyektor).trim();
+          const dataPoinHarian = daftarLabelTanggal.map(tgl => petaGrafikHarian[tgl][pID] || 0);
+          const skemaWarna = daftarWarna[indeks % daftarWarna.length];
+
+          return {
+            label: p.Nama_Proyektor,
+            data: dataPoinHarian,
+            borderColor: skemaWarna.border,
+            backgroundColor: skemaWarna.bg,
+            tension: 0.3,
+            borderWidth: 2.5,
+            pointRadius: 3,
+            fill: true
+          };
+        });
+
+        if (chartInstance !== null) {
+          chartInstance.destroy();
+        }
+
+        const ctx = document.getElementById('chartTrenBooking').getContext('2d');
+        chartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: daftarLabelTanggal.map(tglStr => {
+              const d = new Date(tglStr);
+              return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+            }),
+            datasets: kumpulanDataset
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: '600' } } },
+              tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Durasi Penggunaan (Jam)', font: { size: 11, weight: 'bold' } },
+                ticks: { stepSize: 1 }
+              },
+              x: {
+                title: { display: true, text: 'Periode Tanggal', font: { size: 11, weight: 'bold' } }
+              }
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error("Gagal memproses data laporan:", error);
+        tbody.innerHTML = `<tr><td colspan="2" class="text-center text-rose-500 py-4 text-xs">Gagal memproses transmisi basis data.</td></tr>`;
       }
     }
 
@@ -692,7 +907,7 @@
         }
       } catch (error) {
         alert("Gagal menambahkan unit.");
-      } finally {
+      } Transformer finally {
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = `<span class="material-icons text-sm">save</span> Daftarkan Perangkat`;
       }
