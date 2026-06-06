@@ -6,6 +6,7 @@
   <title>Sistem Kontrol Proyektor Kantor - ProTrack SPRI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .transition-sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
   </style>
@@ -14,7 +15,7 @@
       theme: {
         extend: {
           gridTemplateColumns: {
-            '12': 'repeat(12, minmax(0, 1fr))', // Menggunakan 12 grid sebagai representasi 12 jam operasional
+            '12': 'repeat(12, minmax(0, 1fr))', 
           }
         }
       }
@@ -41,7 +42,7 @@
   <div class="flex flex-1 overflow-hidden">
     
     <aside id="sidebar" class="transition-sidebar w-64 bg-white border-r border-gray-200 flex flex-col justify-between flex-shrink-0 shadow-sm z-10">
-      <div class="p-4 space-y-2">
+      <div class="p-4 space-y-2 overflow-y-auto">
         <button onclick="switchPage('dashboard')" id="btn-nav-dashboard" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-blue-600 bg-blue-50 font-semibold rounded-xl transition">
           <span class="material-icons">dashboard</span>
           <span class="sidebar-text opacity-100 whitespace-nowrap">Dashboard Visual</span>
@@ -54,13 +55,21 @@
           <span class="material-icons">swap_horizontal_circle</span>
           <span class="sidebar-text opacity-100 whitespace-nowrap">Kontrol Keluar/Masuk</span>
         </button>
-        <button onclick="switchPage('setting')" id="btn-nav-setting" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+        <button onclick="switchPage('uncovered')" id="btn-nav-uncovered" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+          <span class="material-icons text-rose-500">assignment_late</span>
+          <span class="sidebar-text opacity-100 whitespace-nowrap">Daftar Tunggu (Penuh)</span>
+        </button>
+        <button onclick="switchPage('report')" id="btn-nav-report" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition">
+          <span class="material-icons text-indigo-500">analytics</span>
+          <span class="sidebar-text opacity-100 whitespace-nowrap">Analisa Utilisasi</span>
+        </button>
+        <button onclick="switchPage('setting')" id="btn-nav-setting" class="nav-item w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition mt-4 border-t border-gray-100 pt-4">
           <span class="material-icons">settings</span>
           <span class="sidebar-text opacity-100 whitespace-nowrap">Pengaturan</span>
         </button>
       </div>
       <div id="sidebar-footer" class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center whitespace-nowrap">
-        v1.0.0 &copy; 2026 | Sopari
+        v1.1.0 &copy; 2026 | Sopari
       </div>
     </aside>
 
@@ -70,7 +79,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Kontrol Booking Proyektor PT HSSI</h1>
-            <p class="text-sm text-gray-500">...................................................................................................................................</p>
+            <p class="text-sm text-gray-500">Monitoring jadwal ketersediaan perangkat proyektor secara real-time.</p>
           </div>
           <div class="flex items-center space-x-2 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm self-start sm:self-auto">
             <button onclick="ubahHari(-1)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition">
@@ -222,6 +231,83 @@
         </div>
       </div>
 
+      <div id="page-uncovered" class="page-section hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-3xl">
+          <h2 class="text-xl font-bold text-gray-800 border-b pb-3 mb-4 flex items-center gap-2">
+            <span class="material-icons text-rose-500">assignment_late</span>
+            Formulir Daftar Tunggu & Permintaan Tak Terpenuhi
+          </h2>
+          <p class="text-sm text-gray-500 mb-6">Jika slot proyektor yang Anda butuhkan sudah dibooking orang lain, catat kebutuhan Anda di sini. Data ini akan menjadi laporan (justifikasi) bagi Manajemen HSSI untuk rencana pengadaan unit baru.</p>
+          
+          <form id="form-uncovered" onsubmit="submitUncoveredDemand(event)" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal Dibutuhkan</label>
+                <input type="date" id="unc-tanggal" required class="w-full p-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-gray-50">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Peminjam</label>
+                <input type="text" id="unc-nama" required placeholder="Nama Anda" class="w-full p-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Departemen / Seksi</label>
+                <select id="unc-dept" required class="w-full p-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500">
+                  <option value="" disabled selected>-- Pilih Departemen --</option>
+                  <option value="ACC">ACC</option>
+                  <option value="Admin">Admin</option>
+                  <option value="EXIM">EXIM</option>
+                  <option value="IT">IT</option>
+                  <option value="PGA/HRD">PGA/HRD</option>
+                  <option value="PPC">PPC</option>
+                  <option value="Production">Production</option>
+                  <option value="QC">QC</option>
+                  <option value="Sales">Sales</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">Jam Mulai</label>
+                  <input type="time" id="unc-mulai" required class="w-full p-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">Jam Selesai</label>
+                  <input type="time" id="unc-selesai" required class="w-full p-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500">
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Tujuan / Alasan Pemakaian (Kebutuhan)</label>
+              <textarea id="unc-alasan" required rows="3" placeholder="Contoh: Meeting evaluasi QCC mingguan tidak bisa geser waktu, semua proyektor penuh." class="w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"></textarea>
+            </div>
+            <button type="submit" id="btn-submit-unc" class="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-md shadow-rose-500/10">
+              <span class="material-icons text-sm">send</span> Catat Kebutuhan
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div id="page-report" class="page-section hidden space-y-6">
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Analisa & Utilisasi Perangkat</h1>
+            <p class="text-sm text-gray-500">Grafik komparasi *Booking Aktual* vs *Kebutuhan Tak Terpenuhi*.</p>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
+            <input type="date" id="filter-start" class="text-sm font-medium text-gray-700 bg-transparent border-none outline-none">
+            <span class="text-gray-400 font-bold">-</span>
+            <input type="date" id="filter-end" class="text-sm font-medium text-gray-700 bg-transparent border-none outline-none">
+            <button onclick="loadReportChart()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
+              Terapkan Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm w-full h-[450px] flex items-center justify-center relative">
+          <canvas id="utilizationChart"></canvas>
+        </div>
+      </div>
+
       <div id="page-setting" class="page-section hidden space-y-6">
         <div>
           <h1 class="text-2xl font-bold text-gray-900">Pengaturan Perangkat</h1>
@@ -278,12 +364,26 @@
     let tanggalAktif = new Date();
     let masterProyektor = [];
     let isCollapsed = false;
+    let utilChart = null; // Variabel global untuk Chart.js
 
     window.addEventListener('DOMContentLoaded', async () => {
       setInterval(updateLiveClock, 1000);
       updateLiveClock();
       
       updateLabelTanggal();
+      
+      // Set default rentang tanggal Report (Tgl 1 s/d Akhir Bulan)
+      const date = new Date();
+      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      
+      const formatIso = (d) => {
+        let z = d.getTimezoneOffset() * 60000; 
+        return (new Date(d - z)).toISOString().split('T')[0];
+      };
+      document.getElementById('filter-start').value = formatIso(firstDay);
+      document.getElementById('filter-end').value = formatIso(lastDay);
+
       await muatMasterProyektor();
       muatDataDashboard();
     });
@@ -320,6 +420,11 @@
       const btnAktif = document.getElementById(`btn-nav-${pageId}`);
       if (btnAktif) {
         btnAktif.classList.add('bg-blue-50', 'text-blue-600', 'font-semibold');
+      }
+
+      // Jika membuka halaman report, otomatis muat chart-nya
+      if (pageId === 'report' && document.getElementById('filter-start').value) {
+        loadReportChart();
       }
     }
 
@@ -379,7 +484,6 @@
       }
     }
 
-    // MODIFIKASI TERKONTROL: RENDER TIMELINE SKALA 60 MENIT (1 JAM PER BLOK)
     function renderDashboardBars(dataBooking) {
       const container = document.getElementById('container-bar-proyektor');
       container.innerHTML = "";
@@ -405,27 +509,23 @@
           </div>
         `;
 
-        // Menggunakan grid-cols-12 untuk skala 1 jam per blok (08:00 sampai 20:00 = 12 jam)
         const barWrapper = document.createElement('div');
         barWrapper.className = "grid grid-cols-12 h-12 w-full rounded-xl overflow-hidden border border-gray-200 bg-emerald-500 shadow-inner";
 
-        // Perulangan 12 kali (setiap i merepresentasikan 1 jam penuh)
         for (let i = 0; i < 12; i++) {
           let jamAngka = 8 + i;
           let jamMulaiBlok = String(jamAngka).padStart(2, '0') + ":00";
-          let jamTengahBlok = String(jamAngka).padStart(2, '0') + ":30"; // Untuk validasi jika booking dimulai jam x:30
+          let jamTengahBlok = String(jamAngka).padStart(2, '0') + ":30"; 
 
           const bookingTerpilih = bookingUnit.find(b => {
             let bMulai = b.Jam_Mulai;
             let bSelesai = b.Jam_Selesai;
-            // Blok ini ditandai merah jika waktu booking mencakup jam mulai blok ini atau pertengahan jam ini
             return (jamMulaiBlok >= bMulai && jamMulaiBlok < bSelesai) || (jamTengahBlok >= bMulai && jamTengahBlok < bSelesai);
           });
 
           const blokCell = document.createElement('div');
           
           if (bookingTerpilih) {
-            // Ditambahkan padding horizontal ekstra (px-2) agar tulisan Nama & Departemen memiliki ruang luas dan tidak terpotong
             blokCell.className = "bg-rose-500 border-r border-rose-600/20 px-2 flex flex-col justify-center overflow-hidden text-white relative group cursor-not-allowed select-none shadow-sm";
             blokCell.innerHTML = `
               <div class="text-[11px] font-bold leading-tight truncate">${bookingTerpilih.Nama_Peminjam}</div>
@@ -538,7 +638,22 @@
           switchPage('dashboard');
           muatDataDashboard();
         } else {
-          alert("Gagal: " + result.message);
+          // LOGIKA PINDAH HALAMAN JIKA JADWAL BENTROK
+          if (result.message.toLowerCase().includes("sudah dibooking") || result.message.toLowerCase().includes("bentrok")) {
+            const tawarkanUncovered = confirm(result.message + "\n\nApakah Anda ingin mencatat kebutuhan ini ke Daftar Tunggu agar dapat dievaluasi oleh Manajemen untuk pengadaan proyektor baru?");
+            
+            if (tawarkanUncovered) {
+              switchPage('uncovered');
+              // Auto-fill form uncovered dengan input yang tadi diketik
+              document.getElementById('unc-tanggal').value = payload.tanggal;
+              document.getElementById('unc-nama').value = payload.nama_peminjam;
+              document.getElementById('unc-dept').value = payload.departemen;
+              document.getElementById('unc-mulai').value = payload.jam_mulai;
+              document.getElementById('unc-selesai').value = payload.jam_selesai;
+            }
+          } else {
+            alert("Gagal: " + result.message);
+          }
         }
       } catch (error) {
         alert("Terjadi masalah transmisi jaringan database.");
@@ -546,6 +661,128 @@
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = `<span class="material-icons text-sm">check_circle</span> Konfirmasi & Simpan Booking`;
       }
+    }
+
+    // FUNGSI SUBMIT UNCOVERED DEMAND
+    async function submitUncoveredDemand(event) {
+      event.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-unc');
+      const payload = {
+        action: "logDemand",
+        tanggal: document.getElementById('unc-tanggal').value,
+        nama_peminjam: document.getElementById('unc-nama').value,
+        departemen: document.getElementById('unc-dept').value,
+        jam_mulai: document.getElementById('unc-mulai').value,
+        jam_selesai: document.getElementById('unc-selesai').value,
+        alasan: document.getElementById('unc-alasan').value
+      };
+
+      btnSubmit.disabled = true;
+      const originalText = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>`;
+
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        
+        if(result.status === "success") {
+          alert(result.message);
+          document.getElementById('form-uncovered').reset();
+          switchPage('dashboard');
+        } else {
+          alert("Gagal: " + result.message);
+        }
+      } catch(error) {
+        console.error("Error:", error);
+        alert("Terjadi kesalahan jaringan.");
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalText;
+      }
+    }
+
+    // FUNGSI RENDER CHART REPORT
+    async function loadReportChart() {
+      const start = document.getElementById('filter-start').value;
+      const end = document.getElementById('filter-end').value;
+      
+      if(!start || !end) return alert("Pilih rentang tanggal terlebih dahulu.");
+
+      try {
+        const response = await fetch(`${BACKEND_URL}?action=getReport&startDate=${start}&endDate=${end}`);
+        const result = await response.json();
+
+        if(result.status === "success") {
+          renderChart(result.labels, result.datasets.booking, result.datasets.uncovered);
+        }
+      } catch(error) {
+        console.error("Gagal memuat data report:", error);
+      }
+    }
+
+    function renderChart(labels, bookingData, uncoveredData) {
+      const ctx = document.getElementById('utilizationChart').getContext('2d');
+      
+      if (utilChart) {
+        utilChart.destroy();
+      }
+
+      utilChart = new Chart(ctx, {
+        type: 'line', 
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Booking Terjadwal (Sukses)',
+              data: bookingData,
+              backgroundColor: 'rgba(79, 70, 229, 0.8)', // Indigo-600
+              borderColor: 'rgba(79, 70, 229, 1)',
+              borderWidth: 1,
+              borderRadius: 6
+            },
+            {
+              type: 'line',
+              label: 'Kebutuhan Tak Terpenuhi (Uncovered)',
+              data: uncoveredData,
+              backgroundColor: 'rgba(225, 29, 72, 0.1)', // Rose-600
+              borderColor: 'rgba(225, 29, 72, 1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: 'rgba(225, 29, 72, 1)',
+              pointBorderColor: '#fff',
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: 'rgba(225, 29, 72, 1)'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1, precision: 0 },
+              title: { display: true, text: 'Jumlah Sesi', font: { weight: 'bold' } }
+            },
+            x: {
+              grid: { display: false }
+            }
+          },
+          plugins: {
+            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+            tooltip: { backgroundColor: 'rgba(17, 24, 39, 0.9)' }
+          }
+        }
+      });
     }
 
     function renderHalamanKontrol(dataBooking) {
@@ -601,7 +838,6 @@
           aksiButtonHTML = `<span class="text-xs text-emerald-600 italic flex items-center justify-end gap-1 font-semibold"><span class="material-icons text-sm">task_alt</span> Selesai</span>`;
         }
 
-        // TAMPILAN TANGGAL DI BAWAH JADWAL: Jadwal Penggunaan memunculkan tanggal booking secara eksplisit dan jam rapi
         const tr = document.createElement('tr');
         tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
         tr.innerHTML = `
