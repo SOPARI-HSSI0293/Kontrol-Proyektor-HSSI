@@ -15,7 +15,7 @@
       theme: {
         extend: {
           gridTemplateColumns: {
-            '12': 'repeat(12, minmax(0, 1fr))', // Menggunakan 12 grid sebagai representasi 12 jam operasional
+            '12': 'repeat(12, minmax(0, 1fr))',
           }
         }
       }
@@ -330,13 +330,14 @@
   </div>
 
   <script>
-    // URL DEPLOYMENT GOOGLE APPS SCRIPT WEB APP
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwCTyhZAdbSr__zHiNb55uQvEnafWLwS0nr4i-8cviaJFZ386noNB6TiRGIVqSTGrpvBg/exec";
+    // MASUKKAN URL DEPLOYMENT GOOGLE APPS SCRIPT WEB APP BARU ANDA DI SINI
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwZ8tXqgS0w6e5h01UfK05X94_z166M973_v-C_N8228tD-7B5wZ6pCisd9u3K80r7v/exec";
 
     let tanggalAktif = new Date();
     let masterProyektor = [];
+    let databaseSemuaBooking = []; // Penyimpanan cache lokal agar data harian disaring instan
     let isCollapsed = false;
-    let chartInstance = null; // Menyimpan instansiasi grafik agar bisa di-reset dinamis
+    let chartInstance = null;
 
     window.addEventListener('DOMContentLoaded', async () => {
       setInterval(updateLiveClock, 1000);
@@ -344,9 +345,8 @@
       
       updateLabelTanggal();
       await muatMasterProyektor();
-      muatDataDashboard();
+      await ambilDataDariServer(); // Tarik basis data utama
 
-      // Inisialisasi default tanggal laporan (Rentang 1 Bulan ke belakang)
       const hariIni = new Date();
       const satuBulanLalu = new Date();
       satuBulanLalu.setMonth(hariIni.getMonth() - 1);
@@ -389,7 +389,6 @@
         btnAktif.classList.add('bg-blue-50', 'text-blue-600', 'font-semibold');
       }
 
-      // Otomatis memproses data laporan ketika halaman laporan dibuka
       if (pageId === 'laporan') {
         prosesDataLaporan();
       }
@@ -415,10 +414,10 @@
       document.getElementById('label-tanggal').innerText = tanggalAktif.toLocaleDateString('id-ID', opsi);
     }
 
-    function ubahHari(arah) {
+    async function ubahHari(arah) {
       tanggalAktif.setDate(tanggalAktif.getDate() + arah);
       updateLabelTanggal();
-      muatDataDashboard();
+      filterDanRenderDashboardHariIni();
     }
 
     async function muatMasterProyektor() {
@@ -432,26 +431,34 @@
       }
     }
 
-    async function muatDataDashboard() {
+    async function ambilDataDariServer() {
       const container = document.getElementById('container-bar-proyektor');
-      const tglString = dapatkanFormatTanggal(tanggalAktif);
-      
       try {
-        const response = await fetch(`${BACKEND_URL}?action=getDashboard&tanggal=${tglString}`);
+        const response = await fetch(`${BACKEND_URL}?action=getDashboard`);
         const result = await response.json();
         
         if (result.status === "success") {
-          renderDashboardBars(result.data);
-          renderHalamanKontrol(result.data);
+          databaseSemuaBooking = result.data;
+          filterDanRenderDashboardHariIni();
         } else {
           container.innerHTML = `<p class="text-rose-500 text-center py-4 font-semibold">Error: ${result.message}</p>`;
         }
       } catch (error) {
-        console.error("Gagal memuat data operasional:", error);
+        console.error("Gagal sinkronisasi data:", error);
+        container.innerHTML = `<p class="text-rose-500 text-center py-4 font-semibold">Gagal memuat log database server.</p>`;
       }
     }
 
-    function renderDashboardBars(dataBooking) {
+    function filterDanRenderDashboardHariIni() {
+      const targetTglStr = dapatkanFormatTanggal(tanggalAktif);
+      // Saring data lokal berdasarkan tanggal aktif di dashboard
+      const dataHariIni = databaseSemuaBooking.filter(b => b.Tanggal === targetTglStr);
+      
+      renderDashboardBars(dataHariIni);
+      renderHalamanKontrol(dataHariIni);
+    }
+
+    function renderDashboardBars(bookingUnitHariIni) {
       const container = document.getElementById('container-bar-proyektor');
       container.innerHTML = "";
       
@@ -464,7 +471,7 @@
 
       proyektorAktif.forEach(proyektor => {
         const pIDClean = String(proyektor.ID_Proyektor).trim();
-        const bookingUnit = dataBooking.filter(b => String(b.ID_Proyektor).trim() === pIDClean);
+        const bookingUnit = bookingUnitHariIni.filter(b => String(b.ID_Proyektor).trim() === pIDClean);
 
         const rowDiv = document.createElement('div');
         rowDiv.className = "space-y-2 bg-gray-50/70 p-4 rounded-2xl border border-gray-100 shadow-sm";
@@ -526,8 +533,7 @@
       document.getElementById('form-tanggal').value = dapatkanFormatTanggal(tanggalAktif);
       
       let [hStr, mStr] = jamMulai.split(':');
-      let jamMulaiBulat = hStr + ":00";
-      document.getElementById('form-jam-mulai').value = jamMulaiBulat;
+      document.getElementById('form-jam-mulai').value = hStr + ":00";
       
       let jamSelesaiInteger = Number(hStr) + 1;
       let jamSelesaiBulat = String(jamSelesaiInteger).padStart(2, '0') + ":00";
@@ -552,7 +558,6 @@
 
     async function handleSimpanBooking(event) {
       event.preventDefault();
-      
       const btnSubmit = document.getElementById('btn-submit-booking');
       const jamMulai = document.getElementById('form-jam-mulai').value;
       const jamSelesai = document.getElementById('form-jam-selesai').value;
@@ -603,7 +608,7 @@
           tanggalAktif = new Date(payload.tanggal);
           updateLabelTanggal();
           switchPage('dashboard');
-          muatDataDashboard();
+          await ambilDataDariServer();
         } else {
           alert("Gagal: " + result.message);
         }
@@ -702,7 +707,7 @@
         const result = await response.json();
         if (result.status === "success") {
           alert(result.message);
-          muatDataDashboard();
+          await ambilDataDariServer();
         } else {
           alert("Gagal: " + result.message);
         }
@@ -711,7 +716,7 @@
       }
     }
 
-    async function prosesDataLaporan() {
+    function prosesDataLaporan() {
       const tglMulaiStr = document.getElementById('lap-tanggal-mulai').value;
       const tglSelesaiStr = document.getElementById('lap-tanggal-selesai').value;
       const tbody = document.getElementById('table-body-laporan');
@@ -725,139 +730,115 @@
         return;
       }
 
-      tbody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-gray-400 text-xs">Menganalisis database log...</td></tr>`;
+      // Filter data cache lokal agar pemrosesan grafik secepat kilat
+      const dataTerfilter = databaseSemuaBooking.filter(b => b.Tanggal >= tglMulaiStr && b.Tanggal <= tglSelesaiStr);
 
-      try {
-        // Tarik data penuh menggunakan basis tanggal awal sebagai pemicu backend
-        const response = await fetch(`${BACKEND_URL}?action=getDashboard&tanggal=${tglMulaiStr}`);
-        const result = await response.json();
+      let totalJamPerProyektor = {};
+      masterProyektor.forEach(p => {
+        totalJamPerProyektor[String(p.ID_Proyektor).trim()] = 0;
+      });
 
-        if (result.status !== "success") {
-          tbody.innerHTML = `<tr><td colspan="2" class="text-center text-rose-500 py-4 text-xs">Gagal: ${result.message}</td></tr>`;
-          return;
-        }
+      let petaGrafikHarian = {};
+      let tglBerjalan = new Date(tglMulaiStr);
+      const tglAkhirLoop = new Date(tglSelesaiStr);
 
-        // 1. Filter data lokal berdasarkan periode kalender terpilih
-        const dataTerfilter = result.data.filter(b => b.Tanggal >= tglMulaiStr && b.Tanggal <= tglSelesaiStr);
-
-        // 2. Kalkulasi Akumulasi Total Jam per Unit Proyektor
-        let totalJamPerProyektor = {};
+      while (tglBerjalan <= tglAkhirLoop) {
+        const sTgl = dapatkanFormatTanggal(tglBerjalan);
+        petaGrafikHarian[sTgl] = {};
         masterProyektor.forEach(p => {
-          totalJamPerProyektor[String(p.ID_Proyektor).trim()] = 0;
+          petaGrafikHarian[sTgl][String(p.ID_Proyektor).trim()] = 0;
         });
-
-        // 3. Susun Peta Grafik Harian Kontinu
-        let petaGrafikHarian = {};
-        let tglBerjalan = new Date(tglMulaiStr);
-        const tglAkhirLoop = new Date(tglSelesaiStr);
-
-        while (tglBerjalan <= tglAkhirLoop) {
-          const sTgl = dapatkanFormatTanggal(tglBerjalan);
-          petaGrafikHarian[sTgl] = {};
-          masterProyektor.forEach(p => {
-            petaGrafikHarian[sTgl][String(p.ID_Proyektor).trim()] = 0;
-          });
-          tglBerjalan.setDate(tglBerjalan.getDate() + 1);
-        }
-
-        // Loop kalkulasi selisih durasi jam operasional
-        dataTerfilter.forEach(b => {
-          const pID = String(b.ID_Proyektor).trim();
-          const jamMulaiInt = parseInt(b.Jam_Mulai.split(':')[0], 10);
-          const jamSelesaiInt = parseInt(b.Jam_Selesai.split(':')[0], 10);
-          const durasi = jamSelesaiInt - jamMulaiInt;
-
-          if (durasi > 0) {
-            if (totalJamPerProyektor[pID] !== undefined) {
-              totalJamPerProyektor[pID] += durasi;
-            }
-            if (petaGrafikHarian[b.Tanggal] && petaGrafikHarian[b.Tanggal][pID] !== undefined) {
-              petaGrafikHarian[b.Tanggal][pID] += durasi;
-            }
-          }
-        });
-
-        // 4. Render ke Tabel Ringkasan Samping
-        tbody.innerHTML = "";
-        masterProyektor.forEach(p => {
-          const pID = String(p.ID_Proyektor).trim();
-          const totalJam = totalJamPerProyektor[pID] || 0;
-          const tr = document.createElement('tr');
-          tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
-          tr.innerHTML = `
-            <td class="px-3 py-3">
-              <div class="font-bold text-gray-800">${p.Nama_Proyektor}</div>
-              <div class="text-[10px] text-gray-400 font-mono">${pID}</div>
-            </td>
-            <td class="px-3 py-3 text-right font-bold text-blue-600">${totalJam} Jam</td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        // 5. Konfigurasi dan Render Garis Grafik Chart.js
-        const daftarLabelTanggal = Object.keys(petaGrafikHarian).sort();
-        const daftarWarna = [
-          { border: 'rgb(59, 130, 246)', bg: 'rgba(59, 130, 246, 0.05)' },
-          { border: 'rgb(16, 185, 129)', bg: 'rgba(16, 185, 129, 0.05)' },
-          { border: 'rgb(245, 158, 11)', bg: 'rgba(245, 158, 11, 0.05)' },
-          { border: 'rgb(139, 92, 246)', bg: 'rgba(139, 92, 246, 0.05)' }
-        ];
-
-        const kumpulanDataset = masterProyektor.map((p, indeks) => {
-          const pID = String(p.ID_Proyektor).trim();
-          const dataPoinHarian = daftarLabelTanggal.map(tgl => petaGrafikHarian[tgl][pID] || 0);
-          const skemaWarna = daftarWarna[indeks % daftarWarna.length];
-
-          return {
-            label: p.Nama_Proyektor,
-            data: dataPoinHarian,
-            borderColor: skemaWarna.border,
-            backgroundColor: skemaWarna.bg,
-            tension: 0.3,
-            borderWidth: 2.5,
-            pointRadius: 3,
-            fill: true
-          };
-        });
-
-        if (chartInstance !== null) {
-          chartInstance.destroy();
-        }
-
-        const ctx = document.getElementById('chartTrenBooking').getContext('2d');
-        chartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: daftarLabelTanggal.map(tglStr => {
-              const d = new Date(tglStr);
-              return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-            }),
-            datasets: kumpulanDataset
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: '600' } } },
-              tooltip: { mode: 'index', intersect: false }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: { display: true, text: 'Durasi Penggunaan (Jam)', font: { size: 11, weight: 'bold' } },
-                ticks: { stepSize: 1 }
-              },
-              x: {
-                title: { display: true, text: 'Periode Tanggal', font: { size: 11, weight: 'bold' } }
-              }
-            }
-          }
-        });
-
-      } catch (error) {
-        console.error("Gagal memproses data laporan:", error);
-        tbody.innerHTML = `<tr><td colspan="2" class="text-center text-rose-500 py-4 text-xs">Gagal memproses transmisi basis data.</td></tr>`;
+        tglBerjalan.setDate(tglBerjalan.getDate() + 1);
       }
+
+      dataTerfilter.forEach(b => {
+        const pID = String(b.ID_Proyektor).trim();
+        const jamMulaiInt = parseInt(b.Jam_Mulai.split(':')[0], 10);
+        const jamSelesaiInt = parseInt(b.Jam_Selesai.split(':')[0], 10);
+        const durasi = jamSelesaiInt - jamMulaiInt;
+
+        if (durasi > 0) {
+          if (totalJamPerProyektor[pID] !== undefined) {
+            totalJamPerProyektor[pID] += durasi;
+          }
+          if (petaGrafikHarian[b.Tanggal] && petaGrafikHarian[b.Tanggal][pID] !== undefined) {
+            petaGrafikHarian[b.Tanggal][pID] += durasi;
+          }
+        }
+      });
+
+      tbody.innerHTML = "";
+      masterProyektor.forEach(p => {
+        const pID = String(p.ID_Proyektor).trim();
+        const totalJam = totalJamPerProyektor[pID] || 0;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
+        tr.innerHTML = `
+          <td class="px-3 py-3">
+            <div class="font-bold text-gray-800">${p.Nama_Proyektor}</div>
+            <div class="text-[10px] text-gray-400 font-mono">${pID}</div>
+          </td>
+          <td class="px-3 py-3 text-right font-bold text-blue-600">${totalJam} Jam</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const daftarLabelTanggal = Object.keys(petaGrafikHarian).sort();
+      const daftarWarna = [
+        { border: 'rgb(59, 130, 246)', bg: 'rgba(59, 130, 246, 0.05)' },
+        { border: 'rgb(16, 185, 129)', bg: 'rgba(16, 185, 129, 0.05)' },
+        { border: 'rgb(245, 158, 11)', bg: 'rgba(245, 158, 11, 0.05)' },
+        { border: 'rgb(139, 92, 246)', bg: 'rgba(139, 92, 246, 0.05)' }
+      ];
+
+      const kumpulanDataset = masterProyektor.map((p, indeks) => {
+        const pID = String(p.ID_Proyektor).trim();
+        const dataPoinHarian = daftarLabelTanggal.map(tgl => petaGrafikHarian[tgl][pID] || 0);
+        const skemaWarna = daftarWarna[indeks % daftarWarna.length];
+
+        return {
+          label: p.Nama_Proyektor,
+          data: dataPoinHarian,
+          borderColor: skemaWarna.border,
+          backgroundColor: skemaWarna.bg,
+          tension: 0.3,
+          borderWidth: 2.5,
+          pointRadius: 3,
+          fill: true
+        };
+      });
+
+      if (chartInstance !== null) {
+        chartInstance.destroy();
+      }
+
+      const ctx = document.getElementById('chartTrenBooking').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: daftarLabelTanggal.map(tglStr => {
+            const d = new Date(tglStr);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+          }),
+          datasets: kumpulanDataset
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: '600' } } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Durasi Penggunaan (Jam)', font: { size: 11, weight: 'bold' } },
+              ticks: { stepSize: 1 }
+            },
+            x: { title: { display: true, text: 'Periode Tanggal', font: { size: 11, weight: 'bold' } } }
+          }
+        }
+      });
     }
 
     function renderTableSetting() {
@@ -903,11 +884,11 @@
           alert(result.message);
           document.getElementById('form-tambah-proyektor').reset();
           await muatMasterProyektor();
-          muatDataDashboard();
+          await ambilDataDariServer();
         }
       } catch (error) {
         alert("Gagal menambahkan unit.");
-      } Transformer finally {
+      } finally {
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = `<span class="material-icons text-sm">save</span> Daftarkan Perangkat`;
       }
