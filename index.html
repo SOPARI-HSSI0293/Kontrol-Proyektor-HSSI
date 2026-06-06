@@ -69,7 +69,7 @@
         </button>
       </div>
       <div id="sidebar-footer" class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center whitespace-nowrap">
-        v1.3.1 &copy; 2026 | Sopari
+        v1.4.0 &copy; 2026 | Sopari
       </div>
     </aside>
 
@@ -209,16 +209,16 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm relative">
-          <div class="max-h-[60vh] overflow-y-auto relative rounded-2xl">
-            <table class="w-full text-left border-collapse">
+          <div class="max-h-[60vh] overflow-y-auto overflow-x-auto relative rounded-2xl">
+            <table class="w-full text-left border-collapse min-w-[800px]">
               <thead class="sticky top-0 bg-gray-50 z-10 shadow-[0_1px_0_0_#e5e7eb]">
                 <tr class="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  <th class="px-6 py-4 bg-gray-50">Peminjam</th>
-                  <th class="px-6 py-4 bg-gray-50">Jadwal Penggunaan</th>
-                  <th class="px-6 py-4 bg-gray-50">Jam Ambil (Fisik)</th>
-                  <th class="px-6 py-4 bg-gray-50">Jam Kembali (Fisik)</th>
-                  <th class="px-6 py-4 bg-gray-50">Status Logistik</th>
-                  <th class="px-6 py-4 bg-gray-50 text-right">Verifikasi Petugas</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Peminjam</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Jadwal Penggunaan</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Jam Ambil (Fisik)</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Jam Kembali (Fisik)</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Status Logistik</th>
+                  <th class="px-6 py-4 bg-gray-50 text-right whitespace-nowrap">Verifikasi Petugas</th>
                 </tr>
               </thead>
               <tbody id="table-body-kontrol" class="divide-y divide-gray-100 text-sm text-gray-600 bg-white">
@@ -784,7 +784,7 @@
       });
     }
 
-    // UPDATE & SINKRONISASI: PROSES RENDERING HALAMAN KONTROL (Urutan Prioritas & Waktu Sistem)
+    // UPDATE: PERBAIKAN FORMAT MENIT & CSS UNTUK HALAMAN KONTROL
     function renderHalamanKontrol(dataBooking) {
       const tbody = document.getElementById('table-body-kontrol');
       if (!tbody) return;
@@ -820,6 +820,10 @@
         const proyektor = masterProyektor.find(p => String(p.ID_Proyektor).trim() === String(b.ID_Proyektor).trim());
         const namaProyektor = proyektor ? proyektor.Nama_Proyektor : `ID: ${b.ID_Proyektor}`;
 
+        // MENGHILANGKAN MENIT ANEH (MEMAksa MENJADI :00)
+        let jamMulaiClean = b.Jam_Mulai.includes(":") ? b.Jam_Mulai.split(":")[0] + ":00" : b.Jam_Mulai;
+        let jamSelesaiClean = b.Jam_Selesai.includes(":") ? b.Jam_Selesai.split(":")[0] + ":00" : b.Jam_Selesai;
+
         let badgeClass = "bg-gray-100 text-gray-600 border-gray-200";
         let statusText = b.Status_Log;
         let aksiButtonHTML = "";
@@ -839,7 +843,7 @@
           statusText = "Sedang Digunakan";
           badgeClass = "bg-blue-50 text-blue-700 border border-blue-200";
 
-          if (tglHariIniString === b.Tanggal && jamSekarangString > b.Jam_Selesai) {
+          if (tglHariIniString === b.Tanggal && jamSekarangString > jamSelesaiClean) {
             statusText = "TERLAMBAT KEMBALI";
             badgeClass = "bg-rose-50 text-rose-700 border border-rose-300 animate-pulse font-bold";
           }
@@ -852,29 +856,31 @@
         } else if (jamKembaliFisik !== "-") {
           statusText = "Selesai";
           badgeClass = "bg-emerald-50 text-emerald-700 border border-emerald-100";
-          aksiButtonHTML = `<span class="text-xs text-emerald-600 italic flex items-center justify-end gap-1 font-semibold"><span class="material-icons text-sm">task_alt</span> Selesai</span>`;
+          aksiButtonHTML = `<span class="text-xs text-emerald-600 italic flex items-center justify-end gap-1 font-semibold whitespace-nowrap"><span class="material-icons text-sm">task_alt</span> Selesai</span>`;
         }
 
         const tr = document.createElement('tr');
         tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
+        
+        // Menerapkan whitespace-nowrap pada elemen <td> agar tidak terpotong ke bawah
         tr.innerHTML = `
-          <td class="px-6 py-4">
+          <td class="px-6 py-4 whitespace-nowrap">
             <div class="font-bold text-gray-800 text-[14px]">${b.Nama_Peminjam}</div>
             <div class="text-xs text-gray-400 font-medium">${b.Departemen} • WA: +${b.No_HP}</div>
           </td>
-          <td class="px-6 py-4">
-            <div class="font-bold text-gray-700">${b.Jam_Mulai} - ${b.Jam_Selesai}</div>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="font-bold text-gray-700">${jamMulaiClean} - ${jamSelesaiClean}</div>
             <div class="text-[11px] text-blue-600 font-semibold bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-md inline-block mt-0.5">${b.Tanggal}</div>
             <div class="text-xs text-gray-400 mt-1">${namaProyektor}</div>
           </td>
-          <td class="px-6 py-4 font-mono text-xs font-bold text-gray-600">${jamAmbilFisik}</td>
-          <td class="px-6 py-4 font-mono text-xs font-bold text-gray-600">${jamKembaliFisik}</td>
-          <td class="px-6 py-4">
-            <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
+          <td class="px-6 py-4 font-mono text-xs font-bold text-gray-600 whitespace-nowrap">${jamAmbilFisik}</td>
+          <td class="px-6 py-4 font-mono text-xs font-bold text-gray-600 whitespace-nowrap">${jamKembaliFisik}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeClass} whitespace-nowrap inline-block">
               ${statusText}
             </span>
           </td>
-          <td class="px-6 py-4 text-right">${aksiButtonHTML}</td>
+          <td class="px-6 py-4 text-right whitespace-nowrap">${aksiButtonHTML}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -911,7 +917,7 @@
           <td class="px-4 py-3 font-mono text-xs font-bold text-gray-400">${String(p.ID_Proyektor).trim()}</td>
           <td class="px-4 py-3 font-bold text-gray-800">${p.Nama_Proyektor}</td>
           <td class="px-4 py-3 text-gray-500 text-xs font-medium">${p.Deskripsi || p['Lokasi/Deskripsi'] || '-'}</td>
-          <td class="px-4 py-3 text-right">
+          <td class="px-4 py-3 text-right whitespace-nowrap">
             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isAktif ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-400'}">
               ${isAktif ? 'ONLINE' : 'OFFLINE'}
             </span>
