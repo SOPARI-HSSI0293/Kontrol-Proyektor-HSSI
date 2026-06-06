@@ -69,7 +69,7 @@
         </button>
       </div>
       <div id="sidebar-footer" class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center whitespace-nowrap">
-        v1.4.0 &copy; 2026 | Sopari
+        v1.4.1 &copy; 2026 | Sopari
       </div>
     </aside>
 
@@ -79,7 +79,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Kontrol Booking Proyektor PT HSSI</h1>
-            <p class="text-sm text-gray-500">Monitoring jadwal ketersediaan perangkat proyektor .</p>
+            <p class="text-sm text-gray-500">Monitoring jadwal ketersediaan perangkat proyektor secara real-time.</p>
           </div>
           <div class="flex items-center space-x-2 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm self-start sm:self-auto">
             <button onclick="ubahHari(-1)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition">
@@ -165,7 +165,7 @@
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1">No. WhatsApp Aktif (Mohon di isi untuk kemudahan komunikasi)</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">No. WhatsApp Aktif</label>
               <div class="relative flex items-center">
                 <span class="absolute left-4 text-sm font-semibold text-gray-400 border-r border-gray-200 pr-3">+62</span>
                 <input type="tel" id="form-nohp" required placeholder="81234567890" class="w-full pl-16 pr-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm">
@@ -200,7 +200,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Kontrol Keluar / Masuk Aktual</h1>
-            <p class="text-sm text-gray-500">Log Pencatatan serah terima fisik unit proyektor Mobile.</p>
+            <p class="text-sm text-gray-500">Pencatatan serah terima fisik unit proyektor kantor secara presisi.</p>
           </div>
           <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2 flex items-center gap-2 text-indigo-700 text-sm font-semibold shadow-sm">
             <span class="material-icons text-base animate-spin">schedule</span>
@@ -210,15 +210,15 @@
 
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm relative">
           <div class="max-h-[60vh] overflow-y-auto overflow-x-auto relative rounded-2xl">
-            <table class="w-full text-left border-collapse min-w-[800px]">
+            <table class="w-full text-left border-collapse min-w-[1050px]">
               <thead class="sticky top-0 bg-gray-50 z-10 shadow-[0_1px_0_0_#e5e7eb]">
                 <tr class="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Peminjam</th>
-                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Jadwal Penggunaan</th>
-                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Jam Ambil (Fisik)</th>
-                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Jam Kembali (Fisik)</th>
-                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap">Status Logistik</th>
-                  <th class="px-6 py-4 bg-gray-50 text-right whitespace-nowrap">Verifikasi Petugas</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap w-1/4">Peminjam</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap w-1/4">Jadwal Penggunaan</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap w-1/12">Jam Ambil (Fisik)</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap w-1/12">Jam Kembali (Fisik)</th>
+                  <th class="px-6 py-4 bg-gray-50 whitespace-nowrap w-1/6">Status Logistik</th>
+                  <th class="px-6 py-4 bg-gray-50 text-right whitespace-nowrap w-1/6">Verifikasi Petugas</th>
                 </tr>
               </thead>
               <tbody id="table-body-kontrol" class="divide-y divide-gray-100 text-sm text-gray-600 bg-white">
@@ -237,7 +237,7 @@
             <span class="material-icons text-rose-500">assignment_late</span>
             Formulir Daftar Tunggu & Permintaan Tak Terpenuhi
           </h2>
-          <p class="text-sm text-gray-500 mb-6">Jika slot proyektor yang Anda butuhkan sudah dibooking orang lain, catat kebutuhan Anda di sini. Data ini akan menjadi laporan bagi Manajemen untuk rencana pengadaan unit baru.</p>
+          <p class="text-sm text-gray-500 mb-6">Jika slot proyektor yang Anda butuhkan sudah dibooking orang lain, catat kebutuhan Anda di sini. Data ini akan menjadi laporan (justifikasi) bagi Manajemen untuk rencana pengadaan unit baru.</p>
           
           <form id="form-uncovered" onsubmit="submitUncoveredDemand(event)" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -277,7 +277,7 @@
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-1">Tujuan / Alasan Pemakaian (Kebutuhan)</label>
-              <textarea id="unc-alasan" required rows="3" placeholder="Contoh: Meeting evaluasi / Audit Customer ." class="w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"></textarea>
+              <textarea id="unc-alasan" required rows="3" placeholder="Contoh: Meeting evaluasi bulanan tidak bisa geser waktu, semua proyektor penuh." class="w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"></textarea>
             </div>
             <button type="submit" id="btn-submit-unc" class="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-md shadow-rose-500/10">
               <span class="material-icons text-sm">send</span> Catat Kebutuhan
@@ -290,7 +290,7 @@
         <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Analisa & Utilisasi Perangkat</h1>
-            <p class="text-sm text-gray-500">Breakdown jumlah durasi pemakaian masing-masing perangkat dan Order tak terpenuhi.</p>
+            <p class="text-sm text-gray-500">Breakdown jumlah durasi slot (Jam) masing-masing perangkat vs Daftar Tunggu.</p>
           </div>
           
           <div class="flex flex-wrap items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
@@ -311,7 +311,7 @@
       <div id="page-setting" class="page-section hidden space-y-6">
         <div>
           <h1 class="text-2xl font-bold text-gray-900">Pengaturan Perangkat</h1>
-          <p class="text-sm text-gray-500">Feature ini untuk mendaftarkan inventaris baru (Kontak Administrator untuk menggunakannya).</p>
+          <p class="text-sm text-gray-500">Tambah atau sesuaikan kapasitas inventaris proyektor kantor.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -326,7 +326,7 @@
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Lokasi / Keterangan</label>
-                <textarea id="set-deskripsi" rows="2" placeholder="Contoh: PGA / IT, atau lokasi tetap perangkat" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm"></textarea>
+                <textarea id="set-deskripsi" rows="2" placeholder="Contoh: Ruang Meeting Lantai 2 Gedung Utama" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition text-sm"></textarea>
               </div>
               <button type="submit" id="btn-submit-setting" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-1.5 shadow-sm">
                 <span class="material-icons text-sm">save</span> Daftarkan Perangkat
@@ -784,7 +784,7 @@
       });
     }
 
-    // UPDATE: PERBAIKAN FORMAT MENIT & CSS UNTUK HALAMAN KONTROL
+    // UPDATE: PERBAIKAN TOTAL SINKRONISASI JAM JADWAL PENGGUNAAN (:00)
     function renderHalamanKontrol(dataBooking) {
       const tbody = document.getElementById('table-body-kontrol');
       if (!tbody) return;
@@ -820,9 +820,29 @@
         const proyektor = masterProyektor.find(p => String(p.ID_Proyektor).trim() === String(b.ID_Proyektor).trim());
         const namaProyektor = proyektor ? proyektor.Nama_Proyektor : `ID: ${b.ID_Proyektor}`;
 
-        // MENGHILANGKAN MENIT ANEH (MEMAksa MENJADI :00)
-        let jamMulaiClean = b.Jam_Mulai.includes(":") ? b.Jam_Mulai.split(":")[0] + ":00" : b.Jam_Mulai;
-        let jamSelesaiClean = b.Jam_Selesai.includes(":") ? b.Jam_Selesai.split(":")[0] + ":00" : b.Jam_Selesai;
+        // PERBAIKAN CERDAS FORMAT JAM: Lakukan pembulatan matematika ke atas jika menit melewati angka 45 akibat sisa distorsi zona waktu
+        let jamMulaiClean = b.Jam_Mulai;
+        let jamSelesaiClean = b.Jam_Selesai;
+
+        if (b.Jam_Mulai.includes(":")) {
+          let parts = b.Jam_Mulai.split(":");
+          let hh = parseInt(parts[0], 10);
+          let mm = parseInt(parts[1], 10);
+          if (mm > 45) {
+            hh = (hh + 1) % 24;
+          }
+          jamMulaiClean = String(hh).padStart(2, '0') + ":00";
+        }
+
+        if (b.Jam_Selesai.includes(":")) {
+          let parts = b.Jam_Selesai.split(":");
+          let hh = parseInt(parts[0], 10);
+          let mm = parseInt(parts[1], 10);
+          if (mm > 45) {
+            hh = (hh + 1) % 24;
+          }
+          jamSelesaiClean = String(hh).padStart(2, '0') + ":00";
+        }
 
         let badgeClass = "bg-gray-100 text-gray-600 border-gray-200";
         let statusText = b.Status_Log;
@@ -835,7 +855,7 @@
           statusText = "Belum Diambil";
           badgeClass = "bg-amber-50 text-amber-700 border border-amber-200";
           aksiButtonHTML = `
-            <button onclick="eksekusiAksiLog('${b.ID_Booking}', 'AMBIL')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shadow-sm">
+            <button onclick="eksekusiAksiLog('${b.ID_Booking}', 'AMBIL')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shadow-sm whitespace-nowrap">
               Konfirmasi Ambil
             </button>
           `;
@@ -849,7 +869,7 @@
           }
 
           aksiButtonHTML = `
-            <button onclick="eksekusiAksiLog('${b.ID_Booking}', 'KEMBALI')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shadow-sm">
+            <button onclick="eksekusiAksiLog('${b.ID_Booking}', 'KEMBALI')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shadow-sm whitespace-nowrap">
               Konfirmasi Kembali
             </button>
           `;
@@ -862,7 +882,6 @@
         const tr = document.createElement('tr');
         tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
         
-        // Menerapkan whitespace-nowrap pada elemen <td> agar tidak terpotong ke bawah
         tr.innerHTML = `
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="font-bold text-gray-800 text-[14px]">${b.Nama_Peminjam}</div>
